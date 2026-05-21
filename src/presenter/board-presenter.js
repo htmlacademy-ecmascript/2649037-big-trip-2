@@ -7,10 +7,11 @@ import ItemView from '../view/item-view.js';
 
 export default class BoardPresenter {
 
-  constructor({ infoContainer, filterContainer, sortContainer }) {
+  constructor({ infoContainer, filterContainer, sortContainer, wayPointsModel }) {
     this.infoContainer = infoContainer;
     this.filterContainer = filterContainer;
     this.sortContainer = sortContainer;
+    this.wayPointsModel = wayPointsModel;
   }
 
   init() {
@@ -31,9 +32,11 @@ export default class BoardPresenter {
     // Форма редактирования — первая в списке
     render(new EditFormView(), listContainer);
 
-    // Три точки маршрута
-    for (let i = 0; i < 3; i++) {
-      render(new ItemView(), listContainer);
+
+    // Создаем точки маршрута
+    this.points = this.wayPointsModel.getPoints();
+    for (let i = 0; i < this.points.length; i++) {
+      render(new ItemView({point: this.points[i]}), listContainer);
     }
   }
 }

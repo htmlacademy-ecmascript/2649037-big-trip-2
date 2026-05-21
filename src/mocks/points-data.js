@@ -3,7 +3,6 @@ import { getRandomNumber } from '../utils.js';
 import { destinations } from './destination.js';
 import { events } from './offers-data.js';
 
-const points = [];
 
 const lastDate = new Date(DATA_DATES.START);
 
@@ -44,9 +43,11 @@ const point = (index) => {
 };
 
 const createPoints = () => {
+  const points = [];
   for (let i = 0; i < EVENTS_COUNT; i++) {
     points.push(point(i));
   }
+  return points;
 };
-window.points = points;
+
 export { createPoints };
