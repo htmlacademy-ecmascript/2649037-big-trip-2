@@ -6,9 +6,6 @@ import EditFormView from '../view/edit-form-view.js';
 import PointView from '../view/point-view.js';
 
 const RANDOM_POINT = 0;
-
-
-
 export default class BoardPresenter {
 
   constructor({ infoContainer, filterContainer, sortContainer, wayPointsModel }) {

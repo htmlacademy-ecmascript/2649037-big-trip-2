@@ -1,4 +1,5 @@
 import {createElement} from '../render.js';
+import dayjs from 'dayjs';
 
 function createPointTemplate(point, offers) {
   const {
@@ -10,15 +11,15 @@ function createPointTemplate(point, offers) {
     isFavorite
   } = point;
 
-  const startDate = new Date(dateFrom);
-  const endDate = new Date(dateTo);
+  // Форматирование дат через dayjs
+  const start = dayjs(dateFrom);
+  const end = dayjs(dateTo);
 
-  const startTime = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const endTime = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const day = start.format('MMM D');
+  const startTime = start.format('HH:mm');
+  const endTime = end.format('HH:mm');
 
-  const day = startDate.toLocaleString('en-US', { month: 'short', day: 'numeric' });
-
-  // Теперь офферы — это массив объектов { id, title, price }
+  // Офферы — массив объектов { id, title, price }
   const offersTemplate = offers.map((offer) => `
     <li class="event__offer">
       <span class="event__offer-title">${offer.title}</span>
@@ -72,7 +73,7 @@ function createPointTemplate(point, offers) {
 export default class PointView {
   constructor({point, offers}) {
     this.point = point;
-    this.offers = offers; // ← теперь храним готовые офферы
+    this.offers = offers;
   }
 
   getTemplate() {
