@@ -39,15 +39,18 @@ export default class BoardPresenter {
     this.sortContainer.append(listContainer);
 
     this.points = this.wayPointsModel.getPoints();
+
     // Форма редактирования — первая в списке
-    render(new EditFormView({ point: this.points[RANDOM_POINT] }), listContainer);
+    const editPoint = this.points[RANDOM_POINT];
+    const allTypeOffers = this.wayPointsModel.getEventByType(editPoint.type);
+    const editDestination = this.wayPointsModel.getDestination(editPoint);
+    render(new EditFormView({ point: editPoint, allOffers: allTypeOffers.offers, destination: editDestination }), listContainer);
 
     // Создаем точки маршрута
-
-
     for (let i = 0; i < this.points.length; i++) {
       const offers = this.getOffersForPoint(this.points[i]);
-      render(new PointView({ point: this.points[i], offers: offers }), listContainer);
+      const destination = this.wayPointsModel.getDestination(this.points[i]);
+      render(new PointView({ point: this.points[i], offers: offers, destination: destination }), listContainer);
     }
 
 

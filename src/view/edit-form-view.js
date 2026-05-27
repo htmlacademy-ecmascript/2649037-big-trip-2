@@ -1,22 +1,40 @@
 import { createElement } from '../render.js';
+import dayjs from 'dayjs';
 
-function createEditFormTemplate(point) {
+function createEditFormTemplate(point, allOffers, destinationName) {
   const {
     type,
-    destination,
     dateFrom,
     dateTo,
     basePrice,
-    offers
+    offers: selectedOfferIds
   } = point;
 
-  const start = new Date(dateFrom);
-  const end = new Date(dateTo);
+  // Формат для input[type="text"] в ТЗ Академии
+  const formatForInput = (date) => dayjs(date).format('DD/MM/YY HH:mm');
 
-  const formatDate = (d) =>
-    `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')
-    }/${d.getFullYear().toString().slice(2)} ${d.getHours().toString().padStart(2, '0')
-    }:${d.getMinutes().toString().padStart(2, '0')}`;
+  const start = formatForInput(dateFrom);
+  const end = formatForInput(dateTo);
+
+  // Генерация списка офферов
+  const offersTemplate = allOffers.map((offer) => {
+    const isChecked = selectedOfferIds.includes(offer.id);
+
+    return `
+      <div class="event__offer-selector">
+        <input
+          class="event__offer-checkbox visually-hidden"
+          id="event-offer-${offer.id}-1"
+          type="checkbox"
+          ${isChecked ? 'checked' : ''}
+        >
+        <label class="event__offer-label" for="event-offer-${offer.id}-1">
+          <span class="event__offer-title">${offer.title}</span>
+          &plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
+        </label>
+      </div>
+    `;
+  }).join('');
 
   return `
     <form class="event event--edit" action="#" method="post">
@@ -34,7 +52,8 @@ function createEditFormTemplate(point) {
             <fieldset class="event__type-group">
               <legend class="visually-hidden">Event type</legend>
 
-              ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'].map((t) => `
+              ${['taxi','bus','train','ship','drive','flight','check-in','sightseeing','restaurant']
+    .map((t) => `
                   <div class="event__type-item">
                     <input id="event-type-${t}-1"
                       class="event__type-input visually-hidden"
@@ -54,7 +73,7 @@ function createEditFormTemplate(point) {
           </label>
           <input class="event__input event__input--destination"
             id="event-destination-1" type="text" name="event-destination"
-            value="${destination}" list="destination-list-1">
+            value="${destinationName}" list="destination-list-1">
 
           <datalist id="destination-list-1">
             <option value="Amsterdam"></option>
@@ -67,12 +86,12 @@ function createEditFormTemplate(point) {
           <label class="visually-hidden" for="event-start-time-1">From</label>
           <input class="event__input event__input--time"
             id="event-start-time-1" type="text" name="event-start-time"
-            value="${formatDate(start)}">
+            value="${start}">
           &mdash;
           <label class="visually-hidden" for="event-end-time-1">To</label>
           <input class="event__input event__input--time"
             id="event-end-time-1" type="text" name="event-end-time"
-            value="${formatDate(end)}">
+            value="${end}">
         </div>
 
         <div class="event__field-group event__field-group--price">
@@ -97,23 +116,14 @@ function createEditFormTemplate(point) {
           <h3 class="event__section-title event__section-title--offers">Offers</h3>
 
           <div class="event__available-offers">
-            ${offers.map((id) => `
-              <div class="event__offer-selector">
-                <input class="event__offer-checkbox visually-hidden"
-                  id="event-offer-${id}-1" type="checkbox" checked>
-                <label class="event__offer-label" for="event-offer-${id}-1">
-                  <span class="event__offer-title">Offer #${id}</span>
-                  &plus;&euro;&nbsp;<span class="event__offer-price">?</span>
-                </label>
-              </div>
-            `).join('')}
+            ${offersTemplate}
           </div>
         </section>
 
         <section class="event__section event__section--destination">
           <h3 class="event__section-title event__section-title--destination">Destination</h3>
           <p class="event__destination-description">
-            Description for ${destination}
+            Description for ${destinationName}
           </p>
         </section>
       </section>
@@ -122,19 +132,20 @@ function createEditFormTemplate(point) {
 }
 
 export default class EditFormView {
-  constructor({ point }) {
+  constructor({ point, allOffers, destination }) {
     this.point = point;
+    this.allOffers = allOffers;
+    this.destination = destination;
   }
 
   getTemplate() {
-    return createEditFormTemplate(this.point);
+    return createEditFormTemplate(this.point, this.allOffers, this.destination);
   }
 
   getElement() {
     if (!this.element) {
       this.element = createElement(this.getTemplate());
     }
-
     return this.element;
   }
 
@@ -142,4 +153,3 @@ export default class EditFormView {
     this.element = null;
   }
 }
-

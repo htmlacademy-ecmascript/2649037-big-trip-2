@@ -6,14 +6,8 @@ import { events } from './offers-data.js';
 
 const lastDate = new Date(DATA_DATES.START);
 
-//получаем пункт назначения
-const destinationIds = destinations.map((d) => d.id);
-const destinationCity = destinationIds[getRandomNumber(0, destinationIds.length - 1)];
-
-
 //получаем предложения
 const eventsTypes = events.map((t) => t.type);
-
 
 const point = (index) => {
   // задаем начальную дату
@@ -27,9 +21,14 @@ const point = (index) => {
   // записываем начало следующего события.
   lastDate.setDate(dateTo.getDate() + getRandomNumber(0, DATA_DATES.GAP));
 
-  //записываем все (пока что) предложения
+  //получаем пункт назначения
+  const destinationIds = destinations.map((d) => d.id);
+  const destinationCity = destinationIds[getRandomNumber(0, destinationIds.length - 1)];
+
+  //записываем предложения
   const eventType = eventsTypes[getRandomNumber(0, eventsTypes.length - 1)];
   const eventData = events.find((e) => e.type === eventType);
+
   return {
     id: index,
     basePrice: getRandomNumber(),
