@@ -1,22 +1,40 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 
-function createEditFormTemplate(point, allOffers, destinationName) {
+function createEditFormTemplate(point, allOffers, destinationsList) {
   const {
     type,
     dateFrom,
     dateTo,
     basePrice,
-    offers: selectedOfferIds
+    offers: selectedOfferIds,
+    destination: destinationId
   } = point;
 
-  const formatForInput = (date) => dayjs(date).format('DD/MM/YY HH:mm');
+  // Находим объект destination по ID
+  const destination = destinationsList.find((d) => d.id === destinationId);
+  const destinationName = destination ? destination.name : '';
+  const destinationDescription = destination ? destination.description : '';
+  const destinationSection = destinationDescription
+    ? `
+    <section class="event__section event__section--destination">
+      <h3 class="event__section-title event__section-title--destination">Destination</h3>
+      <p class="event__destination-description">
+        ${destinationDescription}
+      </p>
+    </section>
+  `
+    : '';
 
+  // Форматирование дат
+  const formatForInput = (date) => dayjs(date).format('DD/MM/YY HH:mm');
   const start = formatForInput(dateFrom);
   const end = formatForInput(dateTo);
 
   // Генерация списка офферов
-  const offersTemplate = allOffers.map((offer) => {
+  const eventForType = allOffers.find((e) => e.type === type);
+  const offersForType = eventForType ? eventForType.offers : [];
+  const offersTemplate = offersForType.map((offer) => {
     const isChecked = selectedOfferIds.includes(offer.id);
 
     return `
@@ -35,6 +53,11 @@ function createEditFormTemplate(point, allOffers, destinationName) {
     `;
   }).join('');
 
+  // Генерация списка городов
+  const destinationsOptions = destinationsList
+    .map((d) => `<option value="${d.name}"></option>`)
+    .join('');
+
   return `
     <form class="event event--edit" action="#" method="post">
       <header class="event__header">
@@ -51,7 +74,7 @@ function createEditFormTemplate(point, allOffers, destinationName) {
             <fieldset class="event__type-group">
               <legend class="visually-hidden">Event type</legend>
 
-              ${['taxi','bus','train','ship','drive','flight','check-in','sightseeing','restaurant']
+              ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant']
     .map((t) => `
                   <div class="event__type-item">
                     <input id="event-type-${t}-1"
@@ -75,9 +98,7 @@ function createEditFormTemplate(point, allOffers, destinationName) {
             value="${destinationName}" list="destination-list-1">
 
           <datalist id="destination-list-1">
-            <option value="Amsterdam"></option>
-            <option value="Geneva"></option>
-            <option value="Chamonix"></option>
+            ${destinationsOptions}
           </datalist>
         </div>
 
@@ -119,29 +140,30 @@ function createEditFormTemplate(point, allOffers, destinationName) {
           </div>
         </section>
 
-        <section class="event__section event__section--destination">
-          <h3 class="event__section-title event__section-title--destination">Destination</h3>
-          <p class="event__destination-description">
-            Description for ${destinationName}
-          </p>
-        </section>
+        ${destinationSection}
       </section>
     </form>
   `;
 }
 
-export default class EditFormView extends AbstractView{
-  #point = {};
-  #allOffers = {};
-  #destination = '';
-  constructor({ point, allOffers, destination }) {
+
+export default class EditFormView extends AbstractView {
+  #point;
+  #allOffers;
+  #destinationsList;
+
+  constructor({ point, offers, destinationsList }) {
     super();
     this.#point = point;
-    this.#allOffers = allOffers;
-    this.#destination = destination;
+    this.#allOffers = offers;
+    this.#destinationsList = destinationsList;
   }
 
   get template() {
-    return createEditFormTemplate(this.#point, this.#allOffers, this.#destination);
+    return createEditFormTemplate(
+      this.#point,
+      this.#allOffers,
+      this.#destinationsList
+    );
   }
 }

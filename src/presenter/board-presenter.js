@@ -5,7 +5,6 @@ import SortView from '../view/sort-view.js';
 import EditFormView from '../view/edit-form-view.js';
 import PointView from '../view/point-view.js';
 
-const RANDOM_POINT = 0;
 export default class BoardPresenter {
   #infoContainer = {};
   #filterContainer = {};
@@ -38,6 +37,11 @@ export default class BoardPresenter {
     // Рендер сортировки
     render(new SortView(), this.#sortContainer);
 
+    this.#renderPointsList();
+  }
+
+  #renderPointsList() {
+
     // Создаём контейнер списка
     const listContainer = document.createElement('ul');
     listContainer.classList.add('trip-events__list');
@@ -45,24 +49,19 @@ export default class BoardPresenter {
 
     this.#points = this.#wayPointsModel.getPoints();
 
-    // Форма редактирования — первая в списке
-    const editPoint = this.#points[RANDOM_POINT];
-    const allTypeOffers = this.#wayPointsModel.getEventByType(editPoint.type);
-    const editDestination = this.#wayPointsModel.getDestination(editPoint);
-    render(new EditFormView(
-      {
-        point: editPoint,
-        allOffers: allTypeOffers.offers,
-        destination: editDestination
-      }), listContainer);
-
     // Создаем точки маршрута
     for (let i = 0; i < this.#points.length; i++) {
-      const offers = this.#getOffersForPoint(this.#points[i]);
-      const destination = this.#wayPointsModel.getDestination(this.#points[i]);
-      render(new PointView({ point: this.#points[i], offers: offers, destination: destination }), listContainer);
+      const pointOffers = this.#getOffersForPoint(this.#points[i]);
+      const pointDestination = this.#wayPointsModel.getDestination(this.#points[i]);
+      render(new PointView({ point: this.#points[i], offers: pointOffers, destination: pointDestination }), listContainer);
+
+      render(new EditFormView(
+        {
+          point: this.#points[i],
+          offers: this.#wayPointsModel.getEvents(),
+          destinationsList: this.#wayPointsModel.getDestinations(),
+        }), listContainer);
+
     }
-
-
   }
 }

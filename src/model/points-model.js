@@ -25,5 +25,9 @@ export default class WayPointsModel {
     return events;
   }
 
+  getDestinations() {
+    return destinations;
+  }
+
 }
 
