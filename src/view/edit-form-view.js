@@ -151,12 +151,21 @@ export default class EditFormView extends AbstractView {
   #point;
   #allOffers;
   #destinationsList;
+  #onFormSubmit;
+  #onRollupClick;
 
-  constructor({ point, offers, destinationsList }) {
+  constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick}) {
     super();
     this.#point = point;
     this.#allOffers = offers;
     this.#destinationsList = destinationsList;
+    this.#onFormSubmit = onFormSubmit;
+    this.#onRollupClick = onRollupClick;
+
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#onRollupClickHandler);
+
+    this.element.addEventListener('submit', this.#onFormSubmitHandler);
   }
 
   get template() {
@@ -166,4 +175,15 @@ export default class EditFormView extends AbstractView {
       this.#destinationsList
     );
   }
+
+  #onRollupClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#onRollupClick();
+  };
+
+  #onFormSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#onFormSubmit();
+  };
+
 }
