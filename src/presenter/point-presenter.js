@@ -1,6 +1,6 @@
 import PointView from '../view/point-view.js';
 import EditFormView from '../view/edit-form-view.js';
-import { render, replace } from '../framework/render';
+import { render, replace } from '../framework/render.js';
 
 
 export default class PointPresenter {

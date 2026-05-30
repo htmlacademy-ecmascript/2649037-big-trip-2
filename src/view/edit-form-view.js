@@ -59,7 +59,7 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
     .join('');
 
   return `
-    <form class="event event--edit" action="#" method="post">
+    <form class="event event--edit" action="#" method="post" autocomplete="off">
       <header class="event__header">
 
         <div class="event__type-wrapper">
