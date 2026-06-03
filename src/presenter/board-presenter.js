@@ -109,9 +109,9 @@ export default class BoardPresenter {
   #clearPointsList() {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
-    if (this.message) {
-      remove(this.message);
-      this.message = null;
+    if (this.#message) {
+      remove(this.#message);
+      this.#message = null;
     }
   }
 
@@ -128,15 +128,18 @@ export default class BoardPresenter {
       // Создаём точки
       this.#points = this.#getSortedPoints(filteredPoints);
       this.#points.forEach((point) => {
-        const presenter = new PointPresenter({ pointsModel: this.#wayPointsModel, container: listContainer });
+        const presenter = new PointPresenter({
+          pointsModel: this.#wayPointsModel,
+          container: listContainer,
+          onDataChange: this.#handlePointChange });
         presenter.init(
           point
         );
         this.#pointPresenters.set(point.id, presenter);
       });
     } else {
-      this.message = new EmptyList(this.#currentFilter);
-      render (this.message, this.#sortContainer);
+      this.#message = new EmptyList(this.#currentFilter);
+      render(this.#message, this.#sortContainer);
     }
   }
 }
