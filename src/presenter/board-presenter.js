@@ -18,6 +18,7 @@ export default class BoardPresenter {
 
   #currentFilter = FilterType.EVERYTHING;
   #currentSort = SortType.DAY;
+  #sortView = null;
 
   #pointPresenters = new Map();
   #message = null;
@@ -37,7 +38,8 @@ export default class BoardPresenter {
     render(new FilterView({onFilterChange: this.#handleFilterChange}),this.#filterContainer);
 
     // Рендер сортировки
-    render(new SortView({onSortChange: this.#handleSortChange}), this.#sortContainer);
+    this.#sortView = new SortView({onSortChange: this.#handleSortChange});
+    render(this.#sortView, this.#sortContainer);
 
     this.#renderPointsList();
   }
@@ -125,7 +127,8 @@ export default class BoardPresenter {
 
   #handleFilterChange = (filterType) => {
     this.#currentFilter = filterType;
-    this.#currentSort = SortType.DAY; // сброс сортировки
+    this.#currentSort = SortType.DAY;// сброс сортировки
+    this.#sortView.reset();
     this.#clearPointsList();
     this.#renderPointsList();
   };

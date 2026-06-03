@@ -45,6 +45,10 @@ export default class SortView extends AbstractView {
     return createSortTemplate();
   }
 
+  reset() {
+    this.element.querySelector('#sort-day').checked = true;
+  }
+
   #sortChangeHandler = (evt) => {
     if (evt.target.name === 'trip-sort') {
       this.#handleSortChange(evt.target.value);
