@@ -5,16 +5,20 @@ import SortView from '../view/sort-view.js';
 import EmptyList from '../view/list-empty-view.js';
 import PointPresenter from './point-presenter.js';
 import { FilterType, SortType } from '../const.js';
+import { updateItem } from '../utils.js';
 
 
 export default class BoardPresenter {
   #infoContainer = {};
   #filterContainer = {};
   #sortContainer = {};
+
   #wayPointsModel = {};
   #points = [];
+
   #currentFilter = FilterType.EVERYTHING;
   #currentSort = SortType.DAY;
+
   #pointPresenters = new Map();
   #message = null;
 
@@ -57,6 +61,11 @@ export default class BoardPresenter {
     this.#currentSort = sortType;
     this.#clearPointsList();
     this.#renderPointsList();
+  };
+
+  #handlePointChange = (updatedPoint) => {
+    this.#points = updateItem(this.#points, updatedPoint);
+    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
   };
 
   #getFilteredPoints() {
@@ -102,6 +111,7 @@ export default class BoardPresenter {
     this.#pointPresenters.clear();
     if (this.message) {
       remove(this.message);
+      this.message = null;
     }
   }
 
