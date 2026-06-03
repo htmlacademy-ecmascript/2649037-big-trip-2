@@ -50,6 +50,10 @@ export default class BoardPresenter {
     this.#renderPointsList();
   }
 
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
+
   #handleFilterChange = (filterType) => {
     this.#currentFilter = filterType;
     this.#currentSort = SortType.DAY; // сброс сортировки
@@ -131,7 +135,9 @@ export default class BoardPresenter {
         const presenter = new PointPresenter({
           pointsModel: this.#wayPointsModel,
           container: listContainer,
-          onDataChange: this.#handlePointChange });
+          onDataChange: this.#handlePointChange,
+          onModeChange: this.#handleModeChange
+        });
         presenter.init(
           point
         );
