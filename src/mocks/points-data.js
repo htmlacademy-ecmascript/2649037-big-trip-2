@@ -21,6 +21,7 @@ const point = () => {
 
   // записываем начало следующего события.
   lastDate.setDate(dateTo.getDate() + getRandomNumber(DATA_DATES.MIN_GAP, DATA_DATES.MAX_GAP));
+  lastDate.setHours(dateTo.getHours());
 
   //получаем пункт назначения
   const destinationIds = destinations.map((destination) => destination.id);

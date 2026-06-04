@@ -6,7 +6,7 @@ const events = [
       { id: 2, title: 'Встреча у выхода из терминала', price: 40 },
       { id: 3, title: 'Дополнительный багаж', price: 25 },
       { id: 4, title: 'Вода в салоне', price: 5 },
-      { id: 5, title: 'Тихий водитель', price: 0 },
+      { id: 5, title: 'Тихий водитель', price: 100 },
       { id: 6, title: 'Ожидание 30 минут', price: 15 }
     ]
   },

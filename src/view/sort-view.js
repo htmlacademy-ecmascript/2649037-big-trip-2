@@ -38,14 +38,20 @@ export default class SortView extends AbstractView {
     super();
     this.#handleSortChange = onSortChange;
 
-    this.element.addEventListener('change', (evt) => {
-      if (evt.target.name === 'trip-sort') {
-        this.#handleSortChange(evt.target.value);
-      }
-    });
+    this.element.addEventListener('change', this.#sortChangeHandler);
   }
 
   get template() {
     return createSortTemplate();
   }
+
+  reset() {
+    this.element.querySelector('#sort-day').checked = true;
+  }
+
+  #sortChangeHandler = (evt) => {
+    if (evt.target.name === 'trip-sort') {
+      this.#handleSortChange(evt.target.value);
+    }
+  };
 }

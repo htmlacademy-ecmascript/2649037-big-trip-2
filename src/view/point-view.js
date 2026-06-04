@@ -1,5 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
+import { getDuration } from '../utils.js';
 
 function createPointTemplate(point, offers, destination) {
   const {
@@ -26,6 +27,8 @@ function createPointTemplate(point, offers, destination) {
     </li>
   `).join('');
 
+  const duration = getDuration(start, end);
+
   return `
     <li class="trip-events__item">
       <div class="event">
@@ -42,6 +45,7 @@ function createPointTemplate(point, offers, destination) {
             <time class="event__start-time" datetime="${dateFrom}">${startTime}</time>
             &mdash;
             <time class="event__end-time" datetime="${dateTo}">${endTime}</time>
+            <p class="event__duration">${duration}</p>
           </p>
         </div>
 
