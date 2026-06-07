@@ -1,4 +1,4 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
 
 function createEditFormTemplate(point, allOffers, destinationsList) {
@@ -12,26 +12,30 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
   } = point;
 
   // Находим объект destination по ID
-  const destination = destinationsList.find((currentDestination) => currentDestination.id === destinationId);
-  const destinationName = destination ? destination.name : '';
-  const destinationDescription = destination ? destination.description : '';
+  const destination = destinationsList.find((d) => d.id === destinationId);
+  const {
+    name: destinationName = '',
+    description: destinationDescription = '',
+    pictures: destinationPictures = []
+  } = destination || {};
+
   const destinationSection = destinationDescription
     ? `
     <section class="event__section event__section--destination">
       <h3 class="event__section-title event__section-title--destination">Destination</h3>
-      <p class="event__destination-description">
-        ${destinationDescription}
-      </p>
+      <p class="event__destination-description">${destinationDescription}</p>
     </section>
   `
     : '';
+
+  const destinationPhotosSection = createPhotosTemplate();
 
   // Форматирование дат
   const formatForInput = (date) => dayjs(date).format('DD/MM/YY HH:mm');
   const start = formatForInput(dateFrom);
   const end = formatForInput(dateTo);
 
-  // Генерация списка офферов
+  // Генерация списка услуг
   const eventForType = allOffers.find((offer) => offer.type === type);
   const offersForType = eventForType ? eventForType.offers : [];
   const offersTemplate = offersForType.map((offer) => {
@@ -57,6 +61,25 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
   const destinationsOptions = destinationsList
     .map((currentDestination) => `<option value="${currentDestination.name}"></option>`)
     .join('');
+
+  // Генерация фотографий
+  function createPhotosTemplate() {
+    if (!destinationPictures || destinationPictures.length === 0) {
+      return '';
+    }
+
+    const photosMarkup = destinationPictures
+      .map((photo) => `<img class="event__photo" src="${photo.src}" alt="${photo.description}">`)
+      .join('');
+
+    return `
+    <div class="event__photos-container">
+      <div class="event__photos-tape">
+        ${photosMarkup}
+      </div>
+    </div>
+  `;
+  }
 
   return `
     <form class="event event--edit" action="#" method="post" autocomplete="off">
@@ -141,39 +164,58 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
         </section>
 
         ${destinationSection}
+        ${destinationPhotosSection}
       </section>
     </form>
   `;
 }
 
 
-export default class EditFormView extends AbstractView {
-  #point;
+export default class EditFormView extends AbstractStatefulView {
   #allOffers;
   #destinationsList;
   #onFormSubmit;
   #onRollupClick;
 
-  constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick}) {
+  constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick }) {
     super();
-    this.#point = point;
+    this._setState(EditFormView.parsePointToState(point));
     this.#allOffers = offers;
     this.#destinationsList = destinationsList;
     this.#onFormSubmit = onFormSubmit;
     this.#onRollupClick = onRollupClick;
 
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#onRollupClickHandler);
+    this._restoreHandlers();
 
-    this.element.addEventListener('submit', this.#onFormSubmitHandler);
   }
 
   get template() {
     return createEditFormTemplate(
-      this.#point,
+      this._state,
       this.#allOffers,
       this.#destinationsList
     );
+  }
+
+  _restoreHandlers() {
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#onRollupClickHandler);
+    this.element.addEventListener('submit', this.#formSubmitHandler);
+    this.element.querySelector('.event__type-list')
+      .addEventListener('change', this.#eventTypeChangeHandler);
+    this.element.querySelector('.event__input--destination')
+      .addEventListener('input', this.#destinationChangeHandler);
+  }
+
+  reset(point) {
+    this.updateElement(
+      EditFormView.parsePointToState(point)
+    );
+  }
+
+  #getDestinationIdByName(name) {
+    const found = this.#destinationsList.find((d) => d.name === name);
+    return found ? found.id : null;
   }
 
   #onRollupClickHandler = (evt) => {
@@ -181,9 +223,36 @@ export default class EditFormView extends AbstractView {
     this.#onRollupClick();
   };
 
-  #onFormSubmitHandler = (evt) => {
+  #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#onFormSubmit();
+    this.#onFormSubmit(EditFormView.parseStateToPoint(this._state));
   };
+
+  #eventTypeChangeHandler = (evt) => {
+    evt.preventDefault();
+    this.updateElement({
+      type: evt.target.value
+    });
+
+  };
+
+  #destinationChangeHandler = (evt) => {
+    evt.preventDefault();
+    const name = evt.target.value;
+
+    this.updateElement({
+      destination: this.#getDestinationIdByName(name)
+    });
+  };
+
+
+  static parsePointToState(point) {
+    return { ...point };
+  }
+
+  static parseStateToPoint(state) {
+    return { ...state };
+  }
+
 
 }
