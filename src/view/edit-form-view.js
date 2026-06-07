@@ -1,5 +1,8 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
+import flatpickr from 'flatpickr';
+
+import 'flatpickr/dist/flatpickr.min.css';
 
 function createEditFormTemplate(point, allOffers, destinationsList) {
   const {
@@ -176,6 +179,8 @@ export default class EditFormView extends AbstractStatefulView {
   #destinationsList;
   #onFormSubmit;
   #onRollupClick;
+  #startDatepicker = null;
+  #endDatepicker = null;
 
   constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick }) {
     super();
@@ -205,6 +210,8 @@ export default class EditFormView extends AbstractStatefulView {
       .addEventListener('change', this.#eventTypeChangeHandler);
     this.element.querySelector('.event__input--destination')
       .addEventListener('input', this.#destinationChangeHandler);
+
+    this.#initDatepickers();
   }
 
   reset(point) {
@@ -216,6 +223,35 @@ export default class EditFormView extends AbstractStatefulView {
   #getDestinationIdByName(name) {
     const found = this.#destinationsList.find((d) => d.name === name);
     return found ? found.id : null;
+  }
+
+  #initDatepickers() {
+    if (this.#startDatepicker) {
+      this.#startDatepicker.destroy();
+    }
+    if (this.#endDatepicker) {
+      this.#endDatepicker.destroy();
+    }
+    const startInput = this.element.querySelector('#event-start-time-1');
+    const endInput = this.element.querySelector('#event-end-time-1');
+
+    this.#startDatepicker = flatpickr(startInput, {
+      enableTime: true,
+      dateFormat: 'd/m/y H:i',
+      defaultDate: this._state.dateFrom,
+      onChange: ([selectedDate]) => {
+        this._setState({ dateFrom: selectedDate });
+      }
+    });
+
+    this.#endDatepicker = flatpickr(endInput, {
+      enableTime: true,
+      dateFormat: 'd/m/y H:i',
+      defaultDate: this._state.dateTo,
+      onChange: ([selectedDate]) => {
+        this._setState({ dateTo: selectedDate });
+      }
+    });
   }
 
   #onRollupClickHandler = (evt) => {
