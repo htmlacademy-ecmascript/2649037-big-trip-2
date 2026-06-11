@@ -17,6 +17,7 @@ export default class BoardPresenter {
   #currentFilter = FilterType.EVERYTHING;
   #currentSortType = SortType.DAY;
   #sortView = null;
+  #listContainer = null;
 
   #pointPresenters = new Map();
   #message = null;
@@ -57,67 +58,71 @@ export default class BoardPresenter {
     render(new FilterView({ onFilterChange: this.#handleFilterChange }), this.#filterContainer);
 
     // Рендер сортировки
-    this.#sortView = new SortView({ onSortChange: this.#handleSortChange });
-    render(this.#sortView, this.#sortContainer);
-
+    this.#renderSortView();
+    
     this.#renderPointsList();
   }
 
-  // #getFilteredPoints() {
-  //   const points = this.#wayPointsModel.points;
-  //   const now = new Date();
+  #getFilteredPoints() {
+    const points = this.#wayPointsModel.points;
+    const now = new Date();
 
-  //   switch (this.#currentFilter) {
-  //     case FilterType.FUTURE:
-  //       return points.filter((point) => new Date(point.dateFrom) > now);
+    switch (this.#currentFilter) {
+      case FilterType.FUTURE:
+        return points.filter((point) => new Date(point.dateFrom) > now);
 
-  //     case FilterType.PRESENT:
-  //       return points.filter((point) =>
-  //         new Date(point.dateFrom) <= now && new Date(point.dateTo) >= now
-  //       );
+      case FilterType.PRESENT:
+        return points.filter((point) =>
+          new Date(point.dateFrom) <= now && new Date(point.dateTo) >= now
+        );
 
-  //     case FilterType.PAST:
-  //       return points.filter((point) => new Date(point.dateTo) < now);
+      case FilterType.PAST:
+        return points.filter((point) => new Date(point.dateTo) < now);
 
-  //     default:
-  //       return points;
-  //   }
-  // }
+      default:
+        return points;
+    }
+  }
+
+  #renderSortView() {
+    this.#sortView = new SortView({ onSortChange: this.#handleSortChange });
+    render(this.#sortView, this.#sortContainer);
+  }
 
   #clearPointsList({ resetSortType = false } = {}) {
-
-    // const pointsCount = this.points.length;
 
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
 
-    remove(this.#sortContainer);
-    //  remove(this.#noTaskComponent);
     if (this.#message) {
       remove(this.#message);
       this.#message = null;
     }
 
+    // удаляем контейнер со списком, если он есть
+    if (this.#listContainer) {
+      this.#listContainer.remove();
+      this.#listContainer = null;
+    }
+
     if (resetSortType) {
-      this.#currentSortType = SortType.DEFAULT;
+      remove(this.#sortView);
+      this.#sortView = null;
+      this.#currentSortType = SortType.DAY;
     }
   }
 
   #renderPointsList() {
-
-    // const filteredPoints = this.#getFilteredPoints();
-
-    // if(filteredPoints.length > 0){
     // Создаём контейнер списка
-    const listContainer = document.createElement('ul');
-    listContainer.classList.add('trip-events__list');
-    this.#sortContainer.append(listContainer);
+    this.#listContainer = document.createElement('ul');
+    this.#listContainer.classList.add('trip-events__list');
+    this.#sortContainer.append(this.#listContainer);
 
     // Создаём точки
     this.points.forEach((point) => {
       const presenter = new PointPresenter({
         pointsModel: this.#wayPointsModel,
-        container: listContainer,
+        container: this.#listContainer,
         onDataChange: this.#handleViewAction,
         onModeChange: this.#handleModeChange
       });
@@ -126,11 +131,11 @@ export default class BoardPresenter {
       );
       this.#pointPresenters.set(point.id, presenter);
     });
-    //   // Если нет точек, показываем сообщение
-    // } else {
-    //   this.#message = new EmptyList(this.#currentFilter);
-    //   render(this.#message, this.#sortContainer);
-    // }
+  }
+
+  #renderEmptyList() {
+    this.#message = new EmptyList(this.#currentFilter);
+    render(this.#message, this.#sortContainer);
   }
 
   #handleModeChange = () => {
@@ -158,13 +163,13 @@ export default class BoardPresenter {
   #handleViewAction = (actionType, updateType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_TASK:
-        this.#wayPointsModel.updateTask(updateType, update);
+        this.#wayPointsModel.updatePoint(updateType, update);
         break;
       case UserAction.ADD_TASK:
-        this.#wayPointsModel.addTask(updateType, update);
+        this.#wayPointsModel.addPoint(updateType, update);
         break;
       case UserAction.DELETE_TASK:
-        this.#wayPointsModel.deleteTask(updateType, update);
+        this.#wayPointsModel.deletePoint(updateType, update);
         break;
     }
   };
@@ -184,6 +189,7 @@ export default class BoardPresenter {
       case UpdateType.MAJOR:
         // - обновить всю доску (например, при переключении фильтра)
         this.#clearPointsList({ resetSortType: true });
+        this.#renderSortView();
         this.#renderPointsList();
         break;
     }

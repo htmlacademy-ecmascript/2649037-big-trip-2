@@ -182,6 +182,7 @@ export default class EditFormView extends AbstractStatefulView {
   #startDatepicker = null;
   #endDatepicker = null;
   #handleDeleteClick = null;
+  #listContainer = null;
 
   constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick, onDeleteClick }) {
     super();
@@ -287,7 +288,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   #formDeleteHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick(EditFormView.parseStateToTask(this._state));
+    this.#handleDeleteClick(EditFormView.parseStateToPoint(this._state));
   };
 
 
