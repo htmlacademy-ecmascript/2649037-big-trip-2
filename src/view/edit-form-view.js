@@ -1,6 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
+import he from 'he';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -48,11 +49,12 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
       <div class="event__offer-selector">
         <input
           class="event__offer-checkbox visually-hidden"
-          id="event-offer-${offer.id}-1"
-          type="checkbox"
+          id="event-offer-${offer.id}"
+          type="checkbox",
+          data-offer-id="${offer.id}"
           ${isChecked ? 'checked' : ''}
         >
-        <label class="event__offer-label" for="event-offer-${offer.id}-1">
+        <label class="event__offer-label" for="event-offer-${offer.id}">
           <span class="event__offer-title">${offer.title}</span>
           &plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
         </label>
@@ -101,7 +103,7 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
               <legend class="visually-hidden">Event type</legend>
 
               ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant']
-    .map((typeName) => `
+        .map((typeName) => `
                   <div class="event__type-item">
                     <input id="event-type-${typeName}-1"
                       class="event__type-input visually-hidden"
@@ -121,7 +123,7 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
           </label>
           <input class="event__input event__input--destination"
             id="event-destination-1" type="text" name="event-destination"
-            value="${destinationName}" list="destination-list-1">
+            value="${he.encode(destinationName)}" list="destination-list-1">
 
           <datalist id="destination-list-1">
             ${destinationsOptions}
@@ -215,6 +217,10 @@ export default class EditFormView extends AbstractStatefulView {
       .addEventListener('input', this.#destinationChangeHandler);
     this.element.querySelector('.event__reset-btn')
       .addEventListener('click', this.#formDeleteHandler);
+    this.element.querySelector('.event__input--price')
+      .addEventListener('input', this.#priceInputHandler);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('change', this.#offersChangeHandler);
 
     this.#initDatepickers();
   }
@@ -244,8 +250,18 @@ export default class EditFormView extends AbstractStatefulView {
       enableTime: true,
       dateFormat: 'd/m/y H:i',
       defaultDate: this._state.dateFrom,
+      maxDate: this._state.dateTo,
       onChange: ([selectedDate]) => {
         this._setState({ dateFrom: selectedDate });
+
+        // Если начало > конец → двигаем конец
+        if (selectedDate > this._state.dateTo) {
+          this._setState({ dateTo: selectedDate });
+          this.#endDatepicker.setDate(selectedDate);
+        }
+
+        // Обновляем ограничения
+        this.#endDatepicker.set('minDate', selectedDate);
       }
     });
 
@@ -253,8 +269,18 @@ export default class EditFormView extends AbstractStatefulView {
       enableTime: true,
       dateFormat: 'd/m/y H:i',
       defaultDate: this._state.dateTo,
+      minDate: this._state.dateFrom,
       onChange: ([selectedDate]) => {
         this._setState({ dateTo: selectedDate });
+
+        // Если конец < начало → двигаем начало
+        if (selectedDate < this._state.dateFrom) {
+          this._setState({ dateFrom: selectedDate });
+          this.#startDatepicker.setDate(selectedDate);
+        }
+
+        // Обновляем ограничения
+        this.#startDatepicker.set('maxDate', selectedDate);
       }
     });
   }
@@ -286,10 +312,41 @@ export default class EditFormView extends AbstractStatefulView {
     });
   };
 
+  #priceInputHandler = (evt) => {
+    const value = evt.target.value;
+
+    // Преобразуем в число, но не ломаем пустую строку
+    const price = Number(value);
+
+    this._setState({
+      basePrice: isNaN(price) ? 0 : price
+    });
+  };
+
   #formDeleteHandler = (evt) => {
     evt.preventDefault();
     this.#handleDeleteClick(EditFormView.parseStateToPoint(this._state));
   };
+
+  #offersChangeHandler = (evt) => {
+    const checkbox = evt.target;
+
+    if (checkbox.classList.contains('event__offer-checkbox')) {
+      const offerId = Number(checkbox.dataset.offerId);
+      const isChecked = checkbox.checked;
+
+      let updatedOffers;
+
+      if (isChecked) {
+        updatedOffers = [...this._state.offers, offerId];
+      } else {
+        updatedOffers = this._state.offers.filter((id) => id !== offerId);
+      }
+
+      this._setState({ offers: updatedOffers });
+    }
+  };
+
 
 
   static parsePointToState(point) {

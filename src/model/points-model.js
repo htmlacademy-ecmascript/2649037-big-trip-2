@@ -39,7 +39,7 @@ export default class WayPointsModel extends Observable {
   deletePoint(updateType, update) {
     const index = this.#wayPoints.findIndex((point) => point.id === update.id);
 
-    if (index === -1) {
+    if (!~index) {
       throw new Error('Can\'t delete unexacting point');
     }
 

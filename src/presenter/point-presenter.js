@@ -95,7 +95,7 @@ export default class PointPresenter {
 
   #handleFormSubmit = (update) => {
     this.#handleDataChange(
-      UserAction.UPDATE_TASK,
+      UserAction.UPDATE_POINT,
       UpdateType.MINOR,
       update,
     );

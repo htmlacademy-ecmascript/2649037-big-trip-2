@@ -28,9 +28,9 @@ const SortType = {
 };
 
 const UserAction = {
-  UPDATE_TASK: 'UPDATE_TASK',
-  ADD_TASK: 'ADD_TASK',
-  DELETE_TASK: 'DELETE_TASK',
+  UPDATE_TASK: 'UPDATE_POINT',
+  ADD_TASK: 'ADD_POINT',
+  DELETE_TASK: 'DELETE_POINT',
 };
 
 const UpdateType = {

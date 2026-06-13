@@ -10,8 +10,6 @@ export default class BoardPresenter {
   #infoContainer = {};
   #filterContainer = {};
   #sortContainer = {};
-
-
   #wayPointsModel = {};
 
   #currentFilter = FilterType.EVERYTHING;
@@ -161,13 +159,13 @@ export default class BoardPresenter {
 
   #handleViewAction = (actionType, updateType, update) => {
     switch (actionType) {
-      case UserAction.UPDATE_TASK:
+      case UserAction.UPDATE_POINT:
         this.#wayPointsModel.updatePoint(updateType, update);
         break;
-      case UserAction.ADD_TASK:
+      case UserAction.ADD_POINT:
         this.#wayPointsModel.addPoint(updateType, update);
         break;
-      case UserAction.DELETE_TASK:
+      case UserAction.DELETE_POINT:
         this.#wayPointsModel.deletePoint(updateType, update);
         break;
     }
