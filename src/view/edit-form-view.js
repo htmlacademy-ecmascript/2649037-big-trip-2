@@ -1,7 +1,6 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
-import he from 'he';
 
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -102,8 +101,7 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
             <fieldset class="event__type-group">
               <legend class="visually-hidden">Event type</legend>
 
-              ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant']
-        .map((typeName) => `
+              ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'].map((typeName) => `
                   <div class="event__type-item">
                     <input id="event-type-${typeName}-1"
                       class="event__type-input visually-hidden"
@@ -123,7 +121,7 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
           </label>
           <input class="event__input event__input--destination"
             id="event-destination-1" type="text" name="event-destination"
-            value="${he.encode(destinationName)}" list="destination-list-1">
+            value="${destinationName}" list="destination-list-1">
 
           <datalist id="destination-list-1">
             ${destinationsOptions}
@@ -306,18 +304,26 @@ export default class EditFormView extends AbstractStatefulView {
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const name = evt.target.value;
+    const found = this.#destinationsList.find((d) => d.name === name);
 
-    this.updateElement({
-      destination: this.#getDestinationIdByName(name)
-    });
+    if (found) {
+      // сохраняем селектор активного элемента
+      const selector = '.event__input--destination';
+
+      // перерисовываем форму
+      this.updateElement({
+        destination: found.id
+      });
+
+      // возвращаем фокус
+      this.element.querySelector(selector).focus();
+    }
   };
 
   #priceInputHandler = (evt) => {
-    const value = evt.target.value;
-
-    // Преобразуем в число, но не ломаем пустую строку
-    const price = Number(value);
-
+    // Удаляем всё, что не цифры
+    evt.target.value = evt.target.value.replace(/\D/g, '');
+    const price = evt.target.value;
     this._setState({
       basePrice: isNaN(price) ? 0 : price
     });
@@ -346,7 +352,6 @@ export default class EditFormView extends AbstractStatefulView {
       this._setState({ offers: updatedOffers });
     }
   };
-
 
 
   static parsePointToState(point) {
