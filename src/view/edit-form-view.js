@@ -48,11 +48,12 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
       <div class="event__offer-selector">
         <input
           class="event__offer-checkbox visually-hidden"
-          id="event-offer-${offer.id}-1"
-          type="checkbox"
+          id="event-offer-${offer.id}"
+          type="checkbox",
+          data-offer-id="${offer.id}"
           ${isChecked ? 'checked' : ''}
         >
-        <label class="event__offer-label" for="event-offer-${offer.id}-1">
+        <label class="event__offer-label" for="event-offer-${offer.id}">
           <span class="event__offer-title">${offer.title}</span>
           &plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
         </label>
@@ -100,8 +101,7 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
             <fieldset class="event__type-group">
               <legend class="visually-hidden">Event type</legend>
 
-              ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant']
-    .map((typeName) => `
+              ${['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'].map((typeName) => `
                   <div class="event__type-item">
                     <input id="event-type-${typeName}-1"
                       class="event__type-input visually-hidden"
@@ -177,18 +177,21 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
 export default class EditFormView extends AbstractStatefulView {
   #allOffers;
   #destinationsList;
-  #onFormSubmit;
-  #onRollupClick;
+  #handlerFormSubmit;
+  #handlerRollupClick;
   #startDatepicker = null;
   #endDatepicker = null;
+  #handleDeleteClick = null;
+  #listContainer = null;
 
-  constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick }) {
+  constructor({ point, offers, destinationsList, onFormSubmit, onRollupClick, onDeleteClick }) {
     super();
     this._setState(EditFormView.parsePointToState(point));
     this.#allOffers = offers;
     this.#destinationsList = destinationsList;
-    this.#onFormSubmit = onFormSubmit;
-    this.#onRollupClick = onRollupClick;
+    this.#handlerFormSubmit = onFormSubmit;
+    this.#handlerRollupClick = onRollupClick;
+    this.#handleDeleteClick = onDeleteClick;
 
     this._restoreHandlers();
 
@@ -210,6 +213,12 @@ export default class EditFormView extends AbstractStatefulView {
       .addEventListener('change', this.#eventTypeChangeHandler);
     this.element.querySelector('.event__input--destination')
       .addEventListener('input', this.#destinationChangeHandler);
+    this.element.querySelector('.event__reset-btn')
+      .addEventListener('click', this.#formDeleteHandler);
+    this.element.querySelector('.event__input--price')
+      .addEventListener('input', this.#priceInputHandler);
+    this.element.querySelector('.event__available-offers')
+      .addEventListener('change', this.#offersChangeHandler);
 
     this.#initDatepickers();
   }
@@ -239,8 +248,18 @@ export default class EditFormView extends AbstractStatefulView {
       enableTime: true,
       dateFormat: 'd/m/y H:i',
       defaultDate: this._state.dateFrom,
+      maxDate: this._state.dateTo,
       onChange: ([selectedDate]) => {
         this._setState({ dateFrom: selectedDate });
+
+        // Если начало > конец → двигаем конец
+        if (selectedDate > this._state.dateTo) {
+          this._setState({ dateTo: selectedDate });
+          this.#endDatepicker.setDate(selectedDate);
+        }
+
+        // Обновляем ограничения
+        this.#endDatepicker.set('minDate', selectedDate);
       }
     });
 
@@ -248,20 +267,30 @@ export default class EditFormView extends AbstractStatefulView {
       enableTime: true,
       dateFormat: 'd/m/y H:i',
       defaultDate: this._state.dateTo,
+      minDate: this._state.dateFrom,
       onChange: ([selectedDate]) => {
         this._setState({ dateTo: selectedDate });
+
+        // Если конец < начало → двигаем начало
+        if (selectedDate < this._state.dateFrom) {
+          this._setState({ dateFrom: selectedDate });
+          this.#startDatepicker.setDate(selectedDate);
+        }
+
+        // Обновляем ограничения
+        this.#startDatepicker.set('maxDate', selectedDate);
       }
     });
   }
 
   #onRollupClickHandler = (evt) => {
     evt.preventDefault();
-    this.#onRollupClick();
+    this.#handlerRollupClick();
   };
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#onFormSubmit(EditFormView.parseStateToPoint(this._state));
+    this.#handlerFormSubmit(EditFormView.parseStateToPoint(this._state));
   };
 
   #eventTypeChangeHandler = (evt) => {
@@ -275,10 +304,53 @@ export default class EditFormView extends AbstractStatefulView {
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const name = evt.target.value;
+    const found = this.#destinationsList.find((d) => d.name === name);
 
-    this.updateElement({
-      destination: this.#getDestinationIdByName(name)
+    if (found) {
+      // сохраняем селектор активного элемента
+      const selector = '.event__input--destination';
+
+      // перерисовываем форму
+      this.updateElement({
+        destination: found.id
+      });
+
+      // возвращаем фокус
+      this.element.querySelector(selector).focus();
+    }
+  };
+
+  #priceInputHandler = (evt) => {
+    // Удаляем всё, что не цифры
+    evt.target.value = evt.target.value.replace(/\D/g, '');
+    const price = evt.target.value;
+    this._setState({
+      basePrice: isNaN(price) ? 0 : price
     });
+  };
+
+  #formDeleteHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleDeleteClick(EditFormView.parseStateToPoint(this._state));
+  };
+
+  #offersChangeHandler = (evt) => {
+    const checkbox = evt.target;
+
+    if (checkbox.classList.contains('event__offer-checkbox')) {
+      const offerId = Number(checkbox.dataset.offerId);
+      const isChecked = checkbox.checked;
+
+      let updatedOffers;
+
+      if (isChecked) {
+        updatedOffers = [...this._state.offers, offerId];
+      } else {
+        updatedOffers = this._state.offers.filter((id) => id !== offerId);
+      }
+
+      this._setState({ offers: updatedOffers });
+    }
   };
 
 
