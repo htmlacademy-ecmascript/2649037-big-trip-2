@@ -1,6 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import { getDuration } from '../utils.js';
+import he from 'he';
 
 function createPointTemplate(point, offers, destination) {
   const {
@@ -38,7 +39,7 @@ function createPointTemplate(point, offers, destination) {
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
 
-        <h3 class="event__title">${type} ${destination}</h3>
+        <h3 class="event__title">${type} ${he.encode(destination)}</h3>
 
         <div class="event__schedule">
           <p class="event__time">
@@ -50,7 +51,7 @@ function createPointTemplate(point, offers, destination) {
         </div>
 
         <p class="event__price">
-          &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
+          &euro;&nbsp;<span class="event__price-value">${he.encode(basePrice)}</span>
         </p>
 
         <h4 class="visually-hidden">Offers:</h4>
