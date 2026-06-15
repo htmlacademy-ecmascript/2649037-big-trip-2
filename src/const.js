@@ -27,4 +27,25 @@ const SortType = {
   TIME: 'sort-time'
 };
 
-export {PRICE, POINTS_COUNT, DATA_DATES, FilterType, SortType };
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
+
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
+const POINT_EMPTY = {
+  type: 'flight',
+  destination: null,
+  dateFrom: new Date(),
+  dateTo: new Date(),
+  basePrice: 0,
+  offers: []
+};
+
+export {PRICE, POINTS_COUNT, DATA_DATES, FilterType, SortType, UserAction, UpdateType, POINT_EMPTY};

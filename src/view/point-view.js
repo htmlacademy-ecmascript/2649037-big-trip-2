@@ -1,14 +1,17 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import { getDuration } from '../utils.js';
+import he from 'he';
 
-function createPointTemplate(point, offers, destination) {
+function createPointTemplate(point) {
   const {
     type,
     dateFrom,
     dateTo,
     basePrice,
-    isFavorite
+    isFavorite,
+    offers,
+    destination
   } = point;
 
   // Форматирование дат через dayjs
@@ -38,7 +41,7 @@ function createPointTemplate(point, offers, destination) {
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
 
-        <h3 class="event__title">${type} ${destination}</h3>
+        <h3 class="event__title">${type} ${he.encode(destination)}</h3>
 
         <div class="event__schedule">
           <p class="event__time">
@@ -75,16 +78,12 @@ function createPointTemplate(point, offers, destination) {
 
 export default class PointView extends AbstractView{
   #point = {};
-  #offers = {};
-  #destination = '';
   #onEditClick;
   #handleFavoriteClick;
 
-  constructor({ point, offers, destination, onEditClick, onFavoriteClick}) {
+  constructor({ point, onEditClick, onFavoriteClick}) {
     super();
     this.#point = point;
-    this.#offers = offers;
-    this.#destination = destination;
     this.#onEditClick = onEditClick;
     this.#handleFavoriteClick = onFavoriteClick;
 
@@ -96,7 +95,7 @@ export default class PointView extends AbstractView{
   }
 
   get template() {
-    return createPointTemplate(this.#point, this.#offers, this.#destination);
+    return createPointTemplate(this.#point);
   }
 
   #editClickHandler = (evt) => {

@@ -49,6 +49,10 @@ export default class FilterView extends AbstractView {
   get template() {
     return createFilterTemplate();
   }
+
+  reset() {
+    this.element.querySelector('#filter-everything').checked = true;
+  }
 }
 
 

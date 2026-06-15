@@ -1,13 +1,62 @@
 import { createPoints } from '../mocks/points-data.js';
 import { events } from '../mocks/offers-data.js';
 import { destinations } from '../mocks/destination.js';
+import Observable from '../framework/observable.js';
 
 
-export default class WayPointsModel {
-  wayPoints = createPoints();
+export default class WayPointsModel extends Observable {
+  #wayPoints = createPoints();
 
-  getPoints() {
-    return this.wayPoints;
+  get points() {
+    return this.#wayPoints;
+  }
+
+  get events() {
+    return events;
+  }
+
+  get destinations() {
+    return destinations;
+  }
+
+  updatePoint(updateType, update) {
+    const index = this.#wayPoints.findIndex((point) => point.id === update.id);
+
+    if (!~index) {
+      throw new Error('Can\'t update unexacting point');
+    }
+
+    this.#wayPoints = [
+      ...this.#wayPoints.slice(0, index),
+      update,
+      ...this.#wayPoints.slice(index + 1),
+    ];
+
+    this._notify(updateType, update);
+  }
+
+  addPoint(updateType, update) {
+    this.#wayPoints = [
+      update,
+      ...this.#wayPoints,
+    ];
+
+    this._notify(updateType, update);
+  }
+
+  deletePoint(updateType, update) {
+    const index = this.#wayPoints.findIndex((point) => point.id === update.id);
+
+    if (!~index) {
+      throw new Error('Can\'t delete unexacting point');
+    }
+
+    this.#wayPoints = [
+      ...this.#wayPoints.slice(0, index),
+      ...this.#wayPoints.slice(index + 1),
+    ];
+
+    this._notify(updateType);
   }
 
   // находим все предложения для переданного типа.
@@ -21,19 +70,12 @@ export default class WayPointsModel {
     return destination ? destination.name : '';
   }
 
-  getEvents() {
-    return events;
-  }
-
-  getDestinations() {
-    return destinations;
-  }
 
   getOffersForPoint = (point) => {
-    const eventData = this.getEventByType(point.type);
+    const eventType = this.getEventByType(point.type);
 
     return point.offers
-      .map((offerId) => eventData.offers.find((offer) => offer.id === offerId))
+      .map((offerId) => eventType.offers.find((offer) => offer.id === offerId))
       .filter(Boolean); // на случай, если id нет
   };
 

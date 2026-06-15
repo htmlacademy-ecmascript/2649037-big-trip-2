@@ -4,51 +4,76 @@ import InfoView from '../view/info-view.js';
 import SortView from '../view/sort-view.js';
 import EmptyList from '../view/empty-list-view.js';
 import PointPresenter from './point-presenter.js';
-import { FilterType, SortType } from '../const.js';
-import { updateItem } from '../utils.js';
-
+import NewPointPresenter from './new-point-presenter.js';
+import { FilterType, SortType, UpdateType, UserAction } from '../const.js';
 
 export default class BoardPresenter {
   #infoContainer = {};
   #filterContainer = {};
-  #sortContainer = {};
-
+  #boardContainer = {};
   #wayPointsModel = {};
-  #originalPoints = [];
-  #points = [];
 
   #currentFilter = FilterType.EVERYTHING;
-  #currentSort = SortType.DAY;
+  #currentSortType = SortType.DAY;
   #sortView = null;
+  #filterView = null;
+  #listContainer = null;
 
   #pointPresenters = new Map();
+  #newEventButton = null;
+  #newPointPresenter = null;
+
   #message = null;
 
-  constructor({ infoContainer, filterContainer, sortContainer, wayPointsModel }) {
+  constructor({ infoContainer, boardContainer, wayPointsModel }) {
     this.#infoContainer = infoContainer;
-    this.#filterContainer = filterContainer;
-    this.#sortContainer = sortContainer;
+    this.#boardContainer = boardContainer;
+    this.#filterContainer = this.#infoContainer.querySelector('.trip-controls__filters');
     this.#wayPointsModel = wayPointsModel;
+
+    this.#wayPointsModel.addObserver(this.#handleModelEvent);
+  }
+
+  get points() {
+    const filteredPoints = this.#getFilteredPoints();
+    const sortedPoints = [...filteredPoints];
+    switch (this.#currentSortType) {
+      case SortType.PRICE:
+        return sortedPoints.sort((pointA, pointB) => pointB.basePrice - pointA.basePrice);
+
+      case SortType.TIME:
+        return sortedPoints.sort((pointA, pointB) => {
+          const durationA = new Date(pointA.dateTo) - new Date(pointA.dateFrom);
+          const durationB = new Date(pointB.dateTo) - new Date(pointB.dateFrom);
+          return durationB - durationA;
+        });
+
+      default:
+        return sortedPoints.sort((pointA, pointB) => new Date(pointA.dateFrom) - new Date(pointB.dateFrom));
+    }
   }
 
   init() {
-    this.#originalPoints = this.#wayPointsModel.getPoints();
+    // Кнопка "New event"
+    this.#newEventButton = this.#infoContainer.querySelector('.trip-main__event-add-btn');
+
+    this.#newEventButton.addEventListener('click', () => {
+      this.#newPointClickHandler();
+    });
 
     // Рендер информации о маршруте
     render(new InfoView(), this.#infoContainer, 'afterbegin');
 
     // Рендер фильтров
-    render(new FilterView({onFilterChange: this.#handleFilterChange}),this.#filterContainer);
+    this.#filterView = new FilterView({ onFilterChange: this.#handleFilterChange });
+    render(this.#filterView, this.#filterContainer);
 
-    // Рендер сортировки
-    this.#sortView = new SortView({onSortChange: this.#handleSortChange});
-    render(this.#sortView, this.#sortContainer);
 
     this.#renderPointsList();
   }
 
   #getFilteredPoints() {
-    const points = this.#originalPoints;
+    const points = this.#wayPointsModel.points;
     const now = new Date();
 
     switch (this.#currentFilter) {
@@ -68,82 +93,179 @@ export default class BoardPresenter {
     }
   }
 
-  #getSortedPoints(points) {
-    switch (this.#currentSort) {
-      case SortType.PRICE:
-        return [...points].sort((pointA, pointB) => pointB.basePrice - pointA.basePrice);
-
-      case SortType.TIME:
-        return [...points].sort((pointA, pointB) => {
-          const durationA = new Date(pointA.dateTo) - new Date(pointA.dateFrom);
-          const durationB = new Date(pointB.dateTo) - new Date(pointB.dateFrom);
-          return durationB - durationA;
-        });
-
-      default:
-        return [...points].sort((pointA, pointB) => new Date(pointA.dateFrom) - new Date(pointB.dateFrom));
-    }
+  #renderSortView() {
+    this.#sortView = new SortView({ onSortChange: this.#handleSortChange });
+    render(this.#sortView, this.#boardContainer, 'afterbegin');
   }
 
-  #clearPointsList() {
+  #clearPointsList(resetSortType = false) {
+
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
+
     if (this.#message) {
       remove(this.#message);
       this.#message = null;
     }
+
+    // удаляем контейнер со списком, если он есть
+    if (this.#listContainer) {
+      this.#listContainer.remove();
+      this.#listContainer = null;
+    }
+
+    if (this.#newPointPresenter !== null) {
+      this.#destroyNewPointForm();
+    }
+
+    if (resetSortType) {
+      remove(this.#sortView);
+      this.#sortView = null;
+      this.#currentSortType = SortType.DAY;
+    }
   }
 
   #renderPointsList() {
-    const filteredPoints = this.#getFilteredPoints();
 
-    if(filteredPoints.length > 0){
+    if (this.points.length !== 0) {
+
+      // Рендер сортировки
+      if (!this.#sortView) {
+        this.#renderSortView();
+      }
+
       // Создаём контейнер списка
-      const listContainer = document.createElement('ul');
-      listContainer.classList.add('trip-events__list');
-      this.#sortContainer.append(listContainer);
+      this.#listContainer = document.createElement('ul');
+      this.#listContainer.classList.add('trip-events__list');
+      this.#boardContainer.append(this.#listContainer);
 
       // Создаём точки
-      this.#points = this.#getSortedPoints(filteredPoints);
-      this.#points.forEach((point) => {
+      this.points.forEach((point) => {
         const presenter = new PointPresenter({
           pointsModel: this.#wayPointsModel,
-          container: listContainer,
-          onDataChange: this.#handlePointChange,
+          container: this.#listContainer,
+          onDataChange: this.#handleViewAction,
           onModeChange: this.#handleModeChange
         });
-        presenter.init(
-          point
-        );
+        presenter.init(point);
         this.#pointPresenters.set(point.id, presenter);
       });
-      // Если нет точек, показываем сообщение
     } else {
-      this.#message = new EmptyList(this.#currentFilter);
-      render(this.#message, this.#sortContainer);
+      this.#clearPointsList(true);
+      this.#renderEmptyList();
+
     }
+  }
+
+  #renderEmptyList() {
+    this.#message = new EmptyList(this.#currentFilter);
+    render(this.#message, this.#boardContainer);
   }
 
   #handleModeChange = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
+
+    if (this.#newPointPresenter !== null) {
+      this.#destroyNewPointForm();
+    }
   };
 
   #handleFilterChange = (filterType) => {
     this.#currentFilter = filterType;
-    this.#currentSort = SortType.DAY;// сброс сортировки
-    this.#sortView.reset();
+    this.#currentSortType = SortType.DAY;// сброс сортировки
+    if (this.#sortView) {
+      this.#sortView.reset();
+    }
     this.#clearPointsList();
     this.#renderPointsList();
   };
 
   #handleSortChange = (sortType) => {
-    this.#currentSort = sortType;
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+    this.#currentSortType = sortType;
     this.#clearPointsList();
     this.#renderPointsList();
+
   };
 
-  #handlePointChange = (updatedPoint) => {
-    this.#originalPoints = updateItem(this.#originalPoints, updatedPoint);
-    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
+  #handleViewAction = (actionType, updateType, update) => {
+    switch (actionType) {
+      case UserAction.UPDATE_POINT:
+        this.#wayPointsModel.updatePoint(updateType, update);
+        break;
+      case UserAction.ADD_POINT:
+        this.#wayPointsModel.addPoint(updateType, update);
+        break;
+      case UserAction.DELETE_POINT:
+        this.#wayPointsModel.deletePoint(updateType, update);
+        break;
+    }
   };
+
+  #handleModelEvent = (updateType, data) => {
+    // В зависимости от типа изменений решаем, что делать:
+    switch (updateType) {
+      case UpdateType.PATCH:
+        // - обновить часть списка
+        this.#pointPresenters.get(data.id).init(data);
+        break;
+      case UpdateType.MINOR:
+        // - обновить список
+        this.#clearPointsList();
+        this.#renderPointsList();
+        break;
+      case UpdateType.MAJOR:
+        // - обновить всю доску
+        this.#clearPointsList({ resetSortType: true });
+        this.#renderPointsList();
+        break;
+    }
+  };
+
+  #newPointClickHandler = () => {
+    if (this.#newPointPresenter !== null) {
+      return;
+    }
+
+    this.#sortView.reset();
+    this.#filterView.reset();
+
+    this.#newPointPresenter = new NewPointPresenter({
+      container: this.#listContainer,
+      offers: this.#wayPointsModel.events,
+      destinations: this.#wayPointsModel.destinations,
+      onSubmit: this.#handleNewPointSubmit,
+      onCancel: this.#handleNewPointCancel
+    });
+
+    this.#newPointPresenter.init();
+    this.#newEventButton.disabled = true;
+  };
+
+  #handleNewPointSubmit = (newPoint) => {
+    this.#handleViewAction(
+      UserAction.ADD_POINT,
+      UpdateType.MINOR,
+      newPoint
+    );
+
+    this.#destroyNewPointForm();
+  };
+
+  #handleNewPointCancel = () => {
+    this.#destroyNewPointForm();
+  };
+
+  #destroyNewPointForm() {
+    if (this.#newPointPresenter === null) {
+      return;
+    }
+
+    this.#newPointPresenter.destroy();
+    this.#newPointPresenter = null;
+
+    this.#newEventButton.disabled = false;
+  }
 }
