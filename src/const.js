@@ -42,8 +42,8 @@ const UpdateType = {
 const POINT_EMPTY = {
   type: 'flight',
   destination: null,
-  dateFrom: new Date(),
-  dateTo: new Date(),
+  dateFrom: null,
+  dateTo: null,
   basePrice: 0,
   offers: []
 };

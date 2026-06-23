@@ -85,7 +85,8 @@ function createNewPointFormTemplate(state, allOffers, destinationsList) {
             id="event-start-time-new"
             type="text"
             name="event-start-time"
-            value="${dayjs(dateFrom).format('DD/MM/YY HH:mm')}"
+            value="${dateFrom ? dayjs(dateFrom).format('DD/MM/YY HH:mm') : ''}"
+
           >
 
           &mdash;
@@ -96,7 +97,7 @@ function createNewPointFormTemplate(state, allOffers, destinationsList) {
             id="event-end-time-new"
             type="text"
             name="event-end-time"
-            value="${dayjs(dateTo).format('DD/MM/YY HH:mm')}"
+            value="${dateFrom ? dayjs(dateFrom).format('DD/MM/YY HH:mm') : ''}"
           >
         </div>
 
