@@ -3,6 +3,7 @@ import FilterView from '../view/filter-view.js';
 import InfoView from '../view/info-view.js';
 import SortView from '../view/sort-view.js';
 import EmptyList from '../view/empty-list-view.js';
+import LoadingView from '../view/loading-view.js';
 import PointPresenter from './point-presenter.js';
 import NewPointPresenter from './new-point-presenter.js';
 import { FilterType, SortType, UpdateType, UserAction } from '../const.js';
@@ -15,6 +16,7 @@ export default class BoardPresenter {
 
   #currentFilter = FilterType.EVERYTHING;
   #currentSortType = SortType.DAY;
+  #loadingComponent = new LoadingView();
   #sortView = null;
   #filterView = null;
   #listContainer = null;
@@ -24,6 +26,8 @@ export default class BoardPresenter {
   #newPointPresenter = null;
 
   #message = null;
+
+  #isLoading = true;
 
   constructor({ infoContainer, boardContainer, wayPointsModel }) {
     this.#infoContainer = infoContainer;
@@ -123,6 +127,8 @@ export default class BoardPresenter {
       this.#sortView = null;
       this.#currentSortType = SortType.DAY;
     }
+    
+
   }
 
   #renderPointsList() {
@@ -221,6 +227,11 @@ export default class BoardPresenter {
         this.#clearPointsList({ resetSortType: true });
         this.#renderPointsList();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderPointsList();
+        break;
     }
   };
 
@@ -263,5 +274,9 @@ export default class BoardPresenter {
     this.#newPointPresenter.destroy();
     this.#newPointPresenter = null;
     this.#newEventButton.disabled = false;
+  }
+
+  #renderLoading() {
+    render(this.#loadingComponent, this.#listContainer.element, 'afterbegin');
   }
 }

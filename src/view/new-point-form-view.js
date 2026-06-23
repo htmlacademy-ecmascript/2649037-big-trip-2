@@ -1,7 +1,6 @@
 import AbstractPointFormView from './abstract-point-form-view.js';
 import { POINT_EMPTY } from '../const.js';
 import dayjs from 'dayjs';
-import { nanoid } from 'nanoid';
 
 import he from 'he';
 
@@ -29,7 +28,7 @@ function createNewPointFormTemplate(state, allOffers, destinationsList) {
         <div class="event__type-wrapper">
           <label class="event__type event__type-btn" for="event-type-toggle-new">
             <span class="visually-hidden">Choose event type</span>
-            <img class="event__type-icon" width="17" height="17" src="img/icons/${he.encode(type)}.png" alt="Event type icon"> 
+            <img class="event__type-icon" width="17" height="17" src="img/icons/${he.encode(type)}.png" alt="Event type icon">
           </label>
           <input class="event__type-toggle visually-hidden" id="event-type-toggle-new" type="checkbox">
 
@@ -243,7 +242,6 @@ export default class NewPointFormView extends AbstractPointFormView {
   static parseStateToPoint(state) {
     return {
       ...state,
-      id: nanoid()
     };
   }
 }
