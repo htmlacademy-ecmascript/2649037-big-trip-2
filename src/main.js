@@ -20,5 +20,3 @@ const boardPresenter = new BoardPresenter({
 
 boardPresenter.init();
 wayPointsModel.init();
-
-

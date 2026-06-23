@@ -127,7 +127,9 @@ export default class BoardPresenter {
       this.#sortView = null;
       this.#currentSortType = SortType.DAY;
     }
-    
+    if (this.#loadingComponent){
+      remove(this.#loadingComponent);
+    }
 
   }
 
@@ -164,6 +166,10 @@ export default class BoardPresenter {
   }
 
   #renderEmptyList() {
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
     this.#message = new EmptyList(this.#currentFilter);
     render(this.#message, this.#boardContainer);
   }
@@ -277,6 +283,6 @@ export default class BoardPresenter {
   }
 
   #renderLoading() {
-    render(this.#loadingComponent, this.#listContainer.element, 'afterbegin');
+    render(this.#loadingComponent, this.#boardContainer, 'afterbegin');
   }
 }

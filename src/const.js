@@ -1,3 +1,16 @@
+const PRICE = {
+  min: 1000,
+  max: 5000
+};
+
+const DATA_DATES = {
+  START : '2026-05-01T00:00:00.000Z',
+  END : '2026-08-01T00:00:00.000Z',
+  DURATION_HOURS: 30,
+  MIN_GAP: 7,
+  MAX_GAP: 21
+};
+
 
 const FilterType = {
   EVERYTHING: 'everything',
@@ -34,4 +47,4 @@ const POINT_EMPTY = {
   offers: []
 };
 
-export { FilterType, SortType, UserAction, UpdateType, POINT_EMPTY};
+export {PRICE, DATA_DATES, FilterType, SortType, UserAction, UpdateType, POINT_EMPTY};

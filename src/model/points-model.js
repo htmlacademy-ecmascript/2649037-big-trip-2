@@ -1,7 +1,7 @@
 import { events } from '../mocks/offers-data.js';
 import { destinations } from '../mocks/destination.js';
 import Observable from '../framework/observable.js';
-import { UpdateType } from './const.js';
+import { UpdateType } from '../const.js';
 
 export default class WayPointsModel extends Observable {
   #wayPoints = [];
@@ -28,7 +28,7 @@ export default class WayPointsModel extends Observable {
     try {
       const points = await this.#pointApiService.points;
       this.#wayPoints = points.map(this.#adaptToClient);
-    } catch(err) {
+    } catch (err) {
       this.#wayPoints = [];
     }
     this._notify(UpdateType.INIT);
@@ -57,7 +57,7 @@ export default class WayPointsModel extends Observable {
       const newPoint = this.#adaptToClient(response);
       this.#wayPoints = [newPoint, ...this.#wayPoints];
       this._notify(updatePoint, newPoint);
-    } catch(err) {
+    } catch (err) {
       throw new Error('Can\'t add point');
     }
   }
@@ -78,7 +78,7 @@ export default class WayPointsModel extends Observable {
         ...this.#wayPoints.slice(index + 1),
       ];
       this._notify(updateType);
-    } catch(err) {
+    } catch (err) {
       throw new Error('Can\'t delete point');
     }
   }
@@ -109,10 +109,9 @@ export default class WayPointsModel extends Observable {
       basePrice: point['base_price'],
       dateFrom: point['date_from'],
       dateTo: point['date_to'],
-      destination: point['destination'],
+      destination: point['destination'], // ID
       isFavorite: point['is_favorite'],
-      offers: point['offers'],
-      type: point['type'],
+      offers: point['offers'], // массив ID
     };
 
     delete adaptedPoint['base_price'];
