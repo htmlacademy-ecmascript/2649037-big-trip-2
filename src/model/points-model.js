@@ -47,20 +47,28 @@ export default class WayPointsModel extends Observable {
     this._notify(UpdateType.INIT);
   }
 
-  updatePoint(updateType, update) {
+  async updatePoint(updateType, update) {
     const index = this.#wayPoints.findIndex((point) => point.id === update.id);
 
     if (!~index) {
       throw new Error('Can\'t update unexacting point');
     }
 
-    this.#wayPoints = [
-      ...this.#wayPoints.slice(0, index),
-      update,
-      ...this.#wayPoints.slice(index + 1),
-    ];
+    try {
+      const response = await this.#pointApiService.updatePoint(update);
+      const updatedPoint = this.#adaptToClient(response);
 
-    this._notify(updateType, update);
+      this.#wayPoints = [
+        ...this.#wayPoints.slice(0, index),
+        updatedPoint,
+        ...this.#wayPoints.slice(index + 1),
+      ];
+
+      this._notify(updateType, updatedPoint);
+
+    } catch (err) {
+      throw new Error('Can\'t update point');
+    }
   }
 
   async addPoint(updatePoint, update) {
@@ -81,9 +89,6 @@ export default class WayPointsModel extends Observable {
       throw new Error('Can\'t delete unexacting point');
     }
     try {
-      // Обратите внимание, метод удаления задачи на сервере
-      // ничего не возвращает. Это и верно,
-      // ведь что можно вернуть при удалении задачи?
       await this.#pointApiService.deletePoint(update);
       this.#wayPoints = [
         ...this.#wayPoints.slice(0, index),
@@ -105,7 +110,6 @@ export default class WayPointsModel extends Observable {
     const destination = this.#destinations.find((currentDestination) => currentDestination.id === point.destination);
     return destination ? destination.name : '';
   }
-
 
   getOffersForPoint = (point) => {
     const eventType = this.getEventByType(point.type);
