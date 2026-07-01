@@ -6,7 +6,8 @@ import EmptyList from '../view/empty-list-view.js';
 import LoadingView from '../view/loading-view.js';
 import PointPresenter from './point-presenter.js';
 import NewPointPresenter from './new-point-presenter.js';
-import { FilterType, SortType, UpdateType, UserAction } from '../const.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
+import { FilterType, SortType, UpdateType, UserAction, TimeLimit } from '../const.js';
 
 export default class BoardPresenter {
   #infoContainer = {};
@@ -28,6 +29,11 @@ export default class BoardPresenter {
   #message = null;
 
   #isLoading = true;
+
+  #uiBlocker = new UiBlocker({
+    lowerLimit: TimeLimit.LOWER_LIMIT,
+    upperLimit: TimeLimit.UPPER_LIMIT
+  });
 
   constructor({ infoContainer, boardContainer, wayPointsModel }) {
     this.#infoContainer = infoContainer;
@@ -203,8 +209,9 @@ export default class BoardPresenter {
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
-    switch (actionType) {
+    this.#uiBlocker.block();
 
+    switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#pointPresenters.get(update.id).setSaving();
         try {
@@ -232,6 +239,8 @@ export default class BoardPresenter {
         }
         break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, data) => {
