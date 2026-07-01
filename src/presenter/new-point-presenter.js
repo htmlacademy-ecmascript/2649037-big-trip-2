@@ -55,4 +55,12 @@ export default class NewPointPresenter {
 
     this.#formComponent.shake(resetFormState);
   }
+
+  setSaving() {
+    this.#formComponent.updateElement({
+      ...this.#formComponent._state,
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
 }

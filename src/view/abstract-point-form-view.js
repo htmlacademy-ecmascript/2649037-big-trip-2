@@ -106,10 +106,10 @@ export default class AbstractPointFormView extends AbstractStatefulView {
   }
 
   // общий submit‑обработчик
-  _handleFormSubmit(evt) {
+  _handleFormSubmit(evt, onFormSubmit) {
     evt.preventDefault();
     const point = AbstractPointFormView.parseStateToPoint(this._state);
-    this._onFormSubmit(point);
+    onFormSubmit(point);
   }
 
   // общий обработчик смены типа

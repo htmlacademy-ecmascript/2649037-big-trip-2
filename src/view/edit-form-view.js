@@ -201,7 +201,7 @@ export default class EditFormView extends AbstractPointFormView {
       .addEventListener('click', this.#onRollupClickHandler);
 
     this.element.querySelector('.event__save-btn')
-      .addEventListener('click', (evt) => this._handleFormSubmit(evt));
+      .addEventListener('click', (evt) => this._handleFormSubmit(evt, this.#onFormSubmit));
 
     this.element.querySelector('.event__type-group')
       .addEventListener('change', (evt) => this._handleEventTypeChange(evt));

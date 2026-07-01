@@ -293,7 +293,7 @@ export default class BoardPresenter {
       UpdateType.MINOR,
       newPoint
     );
-    this.#destroyNewPointForm();
+
   };
 
   #handleNewPointCancel = () => {
