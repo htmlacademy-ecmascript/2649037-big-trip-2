@@ -127,7 +127,7 @@ export default class BoardPresenter {
       this.#sortView = null;
       this.#currentSortType = SortType.DAY;
     }
-    if (this.#loadingComponent){
+    if (this.#loadingComponent) {
       remove(this.#loadingComponent);
     }
 
@@ -202,16 +202,34 @@ export default class BoardPresenter {
 
   };
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
     switch (actionType) {
+
       case UserAction.UPDATE_POINT:
-        this.#wayPointsModel.updatePoint(updateType, update);
+        this.#pointPresenters.get(update.id).setSaving();
+        try {
+          await this.#wayPointsModel.updatePoint(updateType, update);
+        } catch {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
+
       case UserAction.ADD_POINT:
-        this.#wayPointsModel.addPoint(updateType, update);
+        this.#newPointPresenter.setSaving();
+        try {
+          await this.#wayPointsModel.addPoint(updateType, update);
+        } catch {
+          this.#newPointPresenter.setAborting();
+        }
         break;
+
       case UserAction.DELETE_POINT:
-        this.#wayPointsModel.deletePoint(updateType, update);
+        this.#pointPresenters.get(update.id).setDeleting();
+        try {
+          await this.#wayPointsModel.deletePoint(updateType, update);
+        } catch {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
   };

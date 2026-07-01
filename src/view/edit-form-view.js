@@ -204,7 +204,7 @@ export default class EditFormView extends AbstractPointFormView {
       .addEventListener('click', (evt) => this._handleFormSubmit(evt));
 
     this.element.querySelector('.event__type-group')
-      .addEventListener('change', (evt) => this._handleEventTypeChange(evt));  
+      .addEventListener('change', (evt) => this._handleEventTypeChange(evt));
 
     this.element.querySelector('.event__input--destination')
       .addEventListener('input', (evt) => {
@@ -241,7 +241,6 @@ export default class EditFormView extends AbstractPointFormView {
     this.#onRollupClick();
   };
 
- 
 
   #formDeleteHandler = (evt) => {
     evt.preventDefault();
