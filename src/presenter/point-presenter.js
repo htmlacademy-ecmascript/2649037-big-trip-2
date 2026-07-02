@@ -103,12 +103,12 @@ export default class PointPresenter {
   };
 
   #handleFormSubmit = (update) => {
+    this.setSaving();
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.MINOR,
       update,
     );
-    this.#replaceFormToCard();
   };
 
   #handleRollupClick = () => {
@@ -125,6 +125,7 @@ export default class PointPresenter {
   };
 
   #handleDeleteClick = (point) => {
+    this.setDeleting();
     this.#handleDataChange(
       UserAction.DELETE_POINT,
       UpdateType.MINOR,
@@ -139,8 +140,56 @@ export default class PointPresenter {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#pointEditComponent.reset(this.#point);
+      this.#pointEditComponent.reset({
+        ...this.#point,
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false
+      });
+
       this.#replaceFormToCard();
     }
+
   }
+
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditComponent.updateElement({
+        ...this.#pointEditComponent._state,
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#pointEditComponent.updateElement({
+        ...this.#pointEditComponent._state,
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
+
+  setAborting() {
+    // Если форма сейчас не открыта — качаем карточку
+    if (this.#mode === Mode.DEFAULT) {
+      this.#pointComponent.shake();
+      return;
+    }
+
+    // Если форма открыта — качаем форму и после анимации сбрасываем состояние
+    const resetFormState = () => {
+      this.#pointEditComponent.updateElement({
+        ...this.#pointEditComponent._state,
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#pointEditComponent.shake(resetFormState);
+  }
+
 }

@@ -43,8 +43,14 @@ const POINT_EMPTY = {
   destination: null,
   dateFrom: null,
   dateTo: null,
+  isFavorite: false,
   basePrice: 0,
   offers: []
 };
 
-export {PRICE, DATA_DATES, FilterType, SortType, UserAction, UpdateType, POINT_EMPTY};
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
+export {PRICE, DATA_DATES, FilterType, SortType, UserAction, UpdateType, POINT_EMPTY, TimeLimit};

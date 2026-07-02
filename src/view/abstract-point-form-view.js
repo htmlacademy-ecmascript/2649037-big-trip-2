@@ -40,7 +40,7 @@ export default class AbstractPointFormView extends AbstractStatefulView {
         this.#endDatepicker.set('minDate', date);// обновляем ограничение конца
         if (this._state.dateTo < date) {
           // если конец уже раньше старта — двигаем конец
-          const newEnd = date;
+          const newEnd = new Date(date.getTime() + 5 * 60 * 1000);
           onEnd(newEnd);
           this.#endDatepicker.setDate(newEnd, false);
         }
@@ -105,6 +105,20 @@ export default class AbstractPointFormView extends AbstractStatefulView {
     this._validateForm();
   }
 
+  // общий submit‑обработчик
+  _handleFormSubmit(evt, onFormSubmit) {
+    evt.preventDefault();
+    const point = AbstractPointFormView.parseStateToPoint(this._state);
+    onFormSubmit(point);
+  }
+
+  // общий обработчик смены типа
+  _handleEventTypeChange(evt) {
+    evt.preventDefault();
+    this.updateElement({ type: evt.target.value });
+  }
+
+
   removeElement() {
     super.removeElement();
     if (this.#startDatepicker) {
@@ -131,10 +145,19 @@ export default class AbstractPointFormView extends AbstractStatefulView {
 
   // Общий парсинг
   static parsePointToState(point) {
-    return { ...point };
+    return { ...point,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false
+    };
   }
 
   static parseStateToPoint(state) {
-    return { ...state };
+    const point = { ...state };
+
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
+    return point;
   }
 }
