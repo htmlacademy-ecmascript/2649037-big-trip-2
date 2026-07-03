@@ -1,6 +1,5 @@
 import { render, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
-import InfoView from '../view/info-view.js';
 import SortView from '../view/sort-view.js';
 import EmptyList from '../view/empty-list-view.js';
 import LoadingView from '../view/loading-view.js';
@@ -70,9 +69,6 @@ export default class BoardPresenter {
     this.#newEventButton.addEventListener('click', () => {
       this.#newPointClickHandler();
     });
-
-    // Рендер информации о маршруте
-    render(new InfoView(), this.#infoContainer, 'afterbegin');
 
     // Рендер фильтров
     this.#filterView = new FilterView({ onFilterChange: this.#handleFilterChange });
