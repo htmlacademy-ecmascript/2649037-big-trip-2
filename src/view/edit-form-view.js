@@ -72,7 +72,6 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
               src="img/icons/${he.encode(type)}.png" alt="Event type icon">
           </label>
 
-          <!-- disabled добавлен -->
           <input class="event__type-toggle visually-hidden" id="event-type-toggle-1" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
           <div class="event__type-list">
@@ -136,7 +135,6 @@ function createEditFormTemplate(point, allOffers, destinationsList) {
           ${isDeleting ? 'Deleting...' : 'Delete'}
         </button>
 
-        <!-- disabled добавлен -->
         <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
           <span class="visually-hidden">Open event</span>
         </button>

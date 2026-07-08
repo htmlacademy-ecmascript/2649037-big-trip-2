@@ -119,6 +119,60 @@ export default class WayPointsModel extends Observable {
       .filter(Boolean); // на случай, если id нет
   };
 
+  getTripInfo() {
+    if (this.#wayPoints.length === 0) {
+      return {
+        firstCity: '',
+        lastCity: '',
+        citiesCount: 0,
+        startDate: null,
+        endDate: null,
+        totalCost: 0
+      };
+    }
+
+    const sortedPoints = [...this.points].sort(
+      (pointA, pointB) => new Date(pointA.dateFrom) - new Date(pointB.dateFrom)
+    );
+
+    // ГОРОДА
+    const cities = sortedPoints.map((point) => {
+      const destinationObject = this.#destinations.find(
+        (destinationItem) => destinationItem.id === point.destination
+      );
+      return destinationObject ? destinationObject.name : '';
+    });
+
+    const firstCity = cities[0];
+    const lastCity = cities[cities.length - 1];
+    const citiesCount = cities.length;
+
+    // ДАТЫ
+    const startDate = new Date(sortedPoints[0].dateFrom);
+    const endDate = new Date(sortedPoints[sortedPoints.length - 1].dateTo);
+
+    // СТОИМОСТЬ
+    let totalCost = 0;
+
+    for (const point of sortedPoints) {
+      totalCost += point.basePrice;
+      const selectedOffers = this.getOffersForPoint(point);
+      for (const offerItem of selectedOffers) {
+        totalCost += offerItem.price;
+      }
+    }
+
+    // ВОЗВРАЩАЕМ ЕДИНЫЙ ОБЪЕКТ
+    return {
+      firstCity,
+      lastCity,
+      citiesCount,
+      startDate,
+      endDate,
+      totalCost
+    };
+  }
+
   #adaptToClient(point) {
     const adaptedPoint = {
       ...point,
