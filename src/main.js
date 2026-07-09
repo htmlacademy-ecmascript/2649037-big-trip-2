@@ -1,6 +1,7 @@
 import BoardPresenter from './presenter/board-presenter.js';
 import WayPointsModel from './model/points-model.js';
 import PointApiService from './point-api-service.js';
+import InfoPresenter from './presenter/info-presenter.js';
 
 const AUTHORIZATION = 'Basic hS2sfS44wcl1sa2k';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
@@ -18,5 +19,11 @@ const boardPresenter = new BoardPresenter({
   wayPointsModel
 });
 
+const infoPresenter = new InfoPresenter({
+  infoContainer: infoElement,
+  pointsModel: wayPointsModel
+});
+
 boardPresenter.init();
 wayPointsModel.init();
+infoPresenter.init();
