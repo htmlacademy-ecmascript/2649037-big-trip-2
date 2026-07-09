@@ -37,14 +37,15 @@ export default class WayPointsModel extends Observable {
       this.#wayPoints = points.map(this.#adaptToClient);
       this.#offers = offers;
       this.#destinations = destinations;
-
+      this._notify(UpdateType.INIT);
     } catch (err) {
       this.#wayPoints = [];
       this.#offers = [];
       this.#destinations = [];
+      this._notify(UpdateType.ERROR);
     }
 
-    this._notify(UpdateType.INIT);
+
   }
 
   async updatePoint(updateType, update) {

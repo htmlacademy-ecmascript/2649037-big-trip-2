@@ -3,6 +3,7 @@ import FilterView from '../view/filter-view.js';
 import SortView from '../view/sort-view.js';
 import EmptyList from '../view/empty-list-view.js';
 import LoadingView from '../view/loading-view.js';
+import FailedLoadDataView from '../view/failed-load-data-view.js';
 import PointPresenter from './point-presenter.js';
 import NewPointPresenter from './new-point-presenter.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
@@ -17,6 +18,7 @@ export default class BoardPresenter {
   #currentFilter = FilterType.EVERYTHING;
   #currentSortType = SortType.DAY;
   #loadingComponent = new LoadingView();
+  #errorComponent = null;
   #sortView = null;
   #filterView = null;
   #listContainer = null;
@@ -204,6 +206,11 @@ export default class BoardPresenter {
       this.#renderLoading();
       return;
     }
+    // Если ошибка — не показываем "нет точек"
+    if (this.#errorComponent !== null) {
+      return;
+    }
+
     this.#message = new EmptyList(this.#currentFilter);
     render(this.#message, this.#boardContainer);
   }
@@ -297,6 +304,29 @@ export default class BoardPresenter {
         remove(this.#loadingComponent);
         this.#filterView.updateDisabled(this.#getFiltersAvailability());
         this.#renderPointsList();
+        break;
+      case UpdateType.ERROR:
+        this.#isLoading = false;
+        // Удаляем загрузчик, если он был
+        remove(this.#loadingComponent);
+        // Полностью очищаем доску
+        this.#clearPointsList(true);
+        // Отключаем кнопку "New event"
+        if (this.#newEventButton) {
+          this.#newEventButton.disabled = true;
+        }
+        // Все фильтры делаем недоступными
+        if (this.#filterView) {
+          this.#filterView.updateDisabled({
+            [FilterType.EVERYTHING]: false,
+            [FilterType.FUTURE]: false,
+            [FilterType.PRESENT]: false,
+            [FilterType.PAST]: false
+          });
+        }
+        // Показываем ошибку
+        this.#errorComponent = new FailedLoadDataView();
+        render(this.#errorComponent, this.#boardContainer);
         break;
     }
   };

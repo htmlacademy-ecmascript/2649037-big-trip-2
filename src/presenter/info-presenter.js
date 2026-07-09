@@ -1,5 +1,6 @@
 import InfoView from '../view/info-view.js';
 import { render, replace, remove } from '../framework/render.js';
+import { UpdateType } from '../const.js';
 
 export default class InfoPresenter {
   #container = null;
@@ -14,7 +15,7 @@ export default class InfoPresenter {
   }
 
   init() {
-    this.#renderInfo();
+    //this.#renderInfo();
   }
 
   #renderInfo() {
@@ -32,7 +33,9 @@ export default class InfoPresenter {
     remove(previousComponent);
   }
 
-  #handleModelEvent = () => {
-    this.#renderInfo();
+  #handleModelEvent = (updateType) => {
+    if(updateType !== UpdateType.ERROR){
+      this.#renderInfo();
+    }
   };
 }
