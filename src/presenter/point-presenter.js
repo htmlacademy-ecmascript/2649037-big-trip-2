@@ -43,10 +43,10 @@ export default class PointPresenter {
     this.#pointEditComponent = new EditFormView({
       point,
       offers: this.#pointsModel.events,
-      destinationsList: this.#pointsModel.destinations,
-      onFormSubmit: this.#handleFormSubmit,
-      onRollupClick: this.#handleRollupClick,
-      onDeleteClick: this.#handleDeleteClick
+      destinations: this.#pointsModel.destinations,
+      onSubmit: this.#handleFormSubmit,
+      onDelete: this.#handleDeleteClick,
+      onRollup: this.#handleRollupClick
     });
 
     if (prevPointComponent === null || prevPointEditComponent === null) {
