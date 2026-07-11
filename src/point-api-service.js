@@ -7,19 +7,27 @@ const Method = {
   DELETE: 'DELETE'
 };
 
+const URL_LOADS = {
+  POINTS :  'points',
+  DESTINATIONS : 'destinations',
+  OFFERS: 'offers'
+};
+
+const HEADERS = { 'Content-Type': 'application/json' };
+
 export default class PointApiService extends ApiService {
   get points() {
-    return this._load({ url: 'points' })
+    return this._load({ url: URL_LOADS.POINTS})
       .then(ApiService.parseResponse);
   }
 
   get destinations() {
-    return this._load({ url: 'destinations' })
+    return this._load({ url: URL_LOADS.DESTINATIONS })
       .then(ApiService.parseResponse);
   }
 
   get offers() {
-    return this._load({ url: 'offers' })
+    return this._load({ url: URL_LOADS.OFFERS })
       .then(ApiService.parseResponse);
   }
 
@@ -28,7 +36,7 @@ export default class PointApiService extends ApiService {
       url: `points/${point.id}`,
       method: Method.PUT,
       body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers(),
     });
 
     const parsedResponse = await ApiService.parseResponse(response);
@@ -41,7 +49,7 @@ export default class PointApiService extends ApiService {
       url: 'points',
       method: Method.POST,
       body: JSON.stringify(this.#adaptToServer(point)),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
+      headers: new Headers(HEADERS),
     });
 
     const parsedResponse = await ApiService.parseResponse(response);

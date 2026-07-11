@@ -1,7 +1,7 @@
 import { render, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
 import SortView from '../view/sort-view.js';
-import EmptyList from '../view/empty-list-view.js';
+import EmptyListView from '../view/empty-list-view.js';
 import LoadingView from '../view/loading-view.js';
 import FailedLoadDataView from '../view/failed-load-data-view.js';
 import PointPresenter from './point-presenter.js';
@@ -208,7 +208,7 @@ export default class BoardPresenter {
       return;
     }
 
-    this.#message = new EmptyList(this.#currentFilter);
+    this.#message = new EmptyListView(this.#currentFilter);
     render(this.#message, this.#boardContainer);
   }
 

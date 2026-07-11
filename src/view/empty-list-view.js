@@ -30,7 +30,7 @@ function createEmptyListTemplate(filter) {
   `;
 }
 
-export default class EmptyList extends AbstractView {
+export default class EmptyListView extends AbstractView {
   #filter = '';
 
   constructor (filter){

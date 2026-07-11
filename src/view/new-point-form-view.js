@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
-import { POINT_EMPTY } from '../const.js';
+import { POINT_EMPTY, DELAY_TIME, DATE_FORMAT } from '../const.js';
 
 function createNewPointFormTemplate(state, allOffers, destinationsList, buttonsTemplate) {
   const {
@@ -367,12 +367,12 @@ export default class NewPointFormView extends AbstractStatefulView {
       this.#endDatepicker.destroy();
     }
 
-    const startInput = this.element.querySelector(startSelector);
-    const endInput = this.element.querySelector(endSelector);
+    const startField = this.element.querySelector(startSelector);
+    const endField = this.element.querySelector(endSelector);
 
-    this.#startDatepicker = flatpickr(startInput, {
+    this.#startDatepicker = flatpickr(startField, {
       enableTime: true,
-      dateFormat: 'd/m/y H:i',
+      dateFormat: DATE_FORMAT,
       defaultDate: state.dateFrom,
       minDate: 'today',
       onChange: ([date]) => {
@@ -381,14 +381,14 @@ export default class NewPointFormView extends AbstractStatefulView {
         this.#endDatepicker.set('minDate', date);
 
         if (this._state.dateTo < date) {
-          const newEnd = new Date(date.getTime() + 5 * 60 * 1000);
+          const newEnd = new Date(date.getTime() + DELAY_TIME);
           onEnd(newEnd);
           this.#endDatepicker.setDate(newEnd, false);
         }
       }
     });
 
-    this.#endDatepicker = flatpickr(endInput, {
+    this.#endDatepicker = flatpickr(endField, {
       enableTime: true,
       dateFormat: 'd/m/y H:i',
       defaultDate: state.dateTo,

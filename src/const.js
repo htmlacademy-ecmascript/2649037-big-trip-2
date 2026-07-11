@@ -54,4 +54,8 @@ const TimeLimit = {
   UPPER_LIMIT: 1000,
 };
 
-export {PRICE, DATA_DATES, FilterType, SortType, UserAction, UpdateType, POINT_EMPTY, TimeLimit};
+const DELAY_TIME = 300000;
+
+const DATE_FORMAT = 'd/m/y H:i';
+
+export {PRICE, DATA_DATES, FilterType, SortType, UserAction, UpdateType, POINT_EMPTY, TimeLimit, DELAY_TIME, DATE_FORMAT};
