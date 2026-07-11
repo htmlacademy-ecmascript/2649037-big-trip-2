@@ -347,7 +347,7 @@ export default class BoardPresenter {
     // 4. Создание формы новой точки
     this.#newPointPresenter = new NewPointPresenter({
       container: this.#listContainer,
-      offers: this.#wayPointsModel.events,
+      offers: this.#wayPointsModel.offers,
       destinations: this.#wayPointsModel.destinations,
       onSubmit: this.#handleNewPointSubmit,
       onCancel: this.#handleNewPointCancel

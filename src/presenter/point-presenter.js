@@ -42,7 +42,7 @@ export default class PointPresenter {
 
     this.#pointEditComponent = new EditFormView({
       point,
-      offers: this.#pointsModel.events,
+      offers: this.#pointsModel.offers,
       destinations: this.#pointsModel.destinations,
       onSubmit: this.#handleFormSubmit,
       onDelete: this.#handleDeleteClick,

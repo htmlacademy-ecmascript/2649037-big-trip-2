@@ -17,7 +17,7 @@ export default class WayPointsModel extends Observable {
     return this.#wayPoints;
   }
 
-  get events() {
+  get offers() {
     return this.#offers;
   }
 
