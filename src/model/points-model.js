@@ -17,7 +17,7 @@ export default class WayPointsModel extends Observable {
     return this.#wayPoints;
   }
 
-  get events() {
+  get offers() {
     return this.#offers;
   }
 
@@ -37,21 +37,22 @@ export default class WayPointsModel extends Observable {
       this.#wayPoints = points.map(this.#adaptToClient);
       this.#offers = offers;
       this.#destinations = destinations;
-
+      this._notify(UpdateType.INIT);
     } catch (err) {
       this.#wayPoints = [];
       this.#offers = [];
       this.#destinations = [];
+      this._notify(UpdateType.ERROR);
     }
 
-    this._notify(UpdateType.INIT);
+
   }
 
   async updatePoint(updateType, update) {
     const index = this.#wayPoints.findIndex((point) => point.id === update.id);
 
     if (!~index) {
-      throw new Error('Can\'t update unexacting point');
+      throw new Error('Can\'t update non-existing point');
     }
 
     try {
@@ -71,12 +72,12 @@ export default class WayPointsModel extends Observable {
     }
   }
 
-  async addPoint(updatePoint, update) {
+  async addPoint(updateType, update) {
     try {
       const response = await this.#pointApiService.addPoint(update);
       const newPoint = this.#adaptToClient(response);
       this.#wayPoints = [newPoint, ...this.#wayPoints];
-      this._notify(updatePoint, newPoint);
+      this._notify(updateType, newPoint);
     } catch (err) {
       throw new Error('Can\'t add point');
     }

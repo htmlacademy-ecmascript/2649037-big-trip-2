@@ -1,22 +1,24 @@
 import { render, remove } from '../framework/render.js';
 import FilterView from '../view/filter-view.js';
 import SortView from '../view/sort-view.js';
-import EmptyList from '../view/empty-list-view.js';
+import EmptyListView from '../view/empty-list-view.js';
 import LoadingView from '../view/loading-view.js';
+import FailedLoadDataView from '../view/failed-load-data-view.js';
 import PointPresenter from './point-presenter.js';
 import NewPointPresenter from './new-point-presenter.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import { FilterType, SortType, UpdateType, UserAction, TimeLimit } from '../const.js';
 
 export default class BoardPresenter {
-  #infoContainer = {};
-  #filterContainer = {};
-  #boardContainer = {};
-  #wayPointsModel = {};
+  #infoContainer = null;
+  #filterContainer = null;
+  #boardContainer = null;
+  #wayPointsModel = null;
 
   #currentFilter = FilterType.EVERYTHING;
   #currentSortType = SortType.DAY;
   #loadingComponent = new LoadingView();
+  #errorComponent = null;
   #sortView = null;
   #filterView = null;
   #listContainer = null;
@@ -66,14 +68,18 @@ export default class BoardPresenter {
     // Кнопка "New event"
     this.#newEventButton = this.#infoContainer.querySelector('.trip-main__event-add-btn');
 
-    this.#newEventButton.addEventListener('click', () => {
-      this.#newPointClickHandler();
-    });
+    this.#newEventButton.addEventListener('click', this.#onNewEventButtonClick);
+
 
     // Рендер фильтров
-    this.#filterView = new FilterView({ onFilterChange: this.#handleFilterChange });
-    render(this.#filterView, this.#filterContainer);
+    const filtersAvailability = this.#getFiltersAvailability();
 
+    this.#filterView = new FilterView({
+      onFilterChange: this.#handleFilterChange,
+      filtersAvailability
+    });
+
+    render(this.#filterView, this.#filterContainer);
 
     this.#renderPointsList();
   }
@@ -98,6 +104,32 @@ export default class BoardPresenter {
         return points;
     }
   }
+
+  #getFiltersAvailability() {
+    const points = this.#wayPointsModel.points;
+    const now = new Date();
+
+    return {
+      [FilterType.EVERYTHING]: points.length > 0,
+
+      [FilterType.FUTURE]: points.some((pointItem) => {
+        const pointDateFrom = new Date(pointItem.dateFrom);
+        return pointDateFrom > now;
+      }),
+
+      [FilterType.PRESENT]: points.some((pointItem) => {
+        const pointDateFrom = new Date(pointItem.dateFrom);
+        const pointDateTo = new Date(pointItem.dateTo);
+        return pointDateFrom <= now && pointDateTo >= now;
+      }),
+
+      [FilterType.PAST]: points.some((pointItem) => {
+        const pointDateTo = new Date(pointItem.dateTo);
+        return pointDateTo < now;
+      })
+    };
+  }
+
 
   #renderSortView() {
     this.#sortView = new SortView({ onSortChange: this.#handleSortChange });
@@ -144,10 +176,7 @@ export default class BoardPresenter {
         this.#renderSortView();
       }
 
-      // Создаём контейнер списка
-      this.#listContainer = document.createElement('ul');
-      this.#listContainer.classList.add('trip-events__list');
-      this.#boardContainer.append(this.#listContainer);
+      this.#createListContainer();
 
       // Создаём точки
       this.points.forEach((point) => {
@@ -161,7 +190,7 @@ export default class BoardPresenter {
         this.#pointPresenters.set(point.id, presenter);
       });
     } else {
-      this.#clearPointsList(true);
+      this.#clearPointsList();
       this.#renderEmptyList();
 
     }
@@ -172,7 +201,12 @@ export default class BoardPresenter {
       this.#renderLoading();
       return;
     }
-    this.#message = new EmptyList(this.#currentFilter);
+    // Если ошибка — не показываем "нет точек"
+    if (this.#errorComponent !== null) {
+      return;
+    }
+
+    this.#message = new EmptyListView(this.#currentFilter);
     render(this.#message, this.#boardContainer);
   }
 
@@ -192,7 +226,9 @@ export default class BoardPresenter {
     }
     this.#clearPointsList();
     this.#renderPointsList();
+    this.#filterView.updateDisabled(this.#getFiltersAvailability());
   };
+
 
   #handleSortChange = (sortType) => {
     if (this.#currentSortType === sortType) {
@@ -249,17 +285,43 @@ export default class BoardPresenter {
       case UpdateType.MINOR:
         // - обновить список
         this.#clearPointsList();
+
+        this.#filterView.updateDisabled(this.#getFiltersAvailability());
         this.#renderPointsList();
         break;
       case UpdateType.MAJOR:
         // - обновить всю доску
-        this.#clearPointsList({ resetSortType: true });
+        this.#clearPointsList(true);
         this.#renderPointsList();
         break;
       case UpdateType.INIT:
         this.#isLoading = false;
         remove(this.#loadingComponent);
+        this.#filterView.updateDisabled(this.#getFiltersAvailability());
         this.#renderPointsList();
+        break;
+      case UpdateType.ERROR:
+        this.#isLoading = false;
+        // Удаляем загрузчик, если он был
+        remove(this.#loadingComponent);
+        // Полностью очищаем доску
+        this.#clearPointsList(true);
+        // Отключаем кнопку "New event"
+        if (this.#newEventButton) {
+          this.#newEventButton.disabled = true;
+        }
+        // Все фильтры делаем недоступными
+        if (this.#filterView) {
+          this.#filterView.updateDisabled({
+            [FilterType.EVERYTHING]: false,
+            [FilterType.FUTURE]: false,
+            [FilterType.PRESENT]: false,
+            [FilterType.PAST]: false
+          });
+        }
+        // Показываем ошибку
+        this.#errorComponent = new FailedLoadDataView();
+        render(this.#errorComponent, this.#boardContainer);
         break;
     }
   };
@@ -268,18 +330,28 @@ export default class BoardPresenter {
     // 1. Закрываем ВСЕ формы редактирования
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
     // 2. Сброс фильтра и сортировки
-    this.#sortView.reset();
+    if (this.#sortView) {
+      this.#sortView.reset();
+    }
     this.#filterView.reset();
-    // 3. Создание формы новой точки
+    this.#filterView.updateDisabled(this.#getFiltersAvailability());
+    // Удаляем EmptyList, если он есть
+    if (this.#message) {
+      remove(this.#message);
+      this.#message = null;
+    }
+    // 3. Создание списка, если его нет
+    this.#createListContainer();
+    // 4. Создание формы новой точки
     this.#newPointPresenter = new NewPointPresenter({
       container: this.#listContainer,
-      offers: this.#wayPointsModel.events,
+      offers: this.#wayPointsModel.offers,
       destinations: this.#wayPointsModel.destinations,
       onSubmit: this.#handleNewPointSubmit,
       onCancel: this.#handleNewPointCancel
     });
     this.#newPointPresenter.init();
-    //4. Отключаем кнопку "New event", чтобы нельзя было открыть две формы одновременно
+    //5. Отключаем кнопку "New event", чтобы нельзя было открыть две формы одновременно
     this.#newEventButton.disabled = true;
   };
 
@@ -308,4 +380,16 @@ export default class BoardPresenter {
   #renderLoading() {
     render(this.#loadingComponent, this.#boardContainer, 'afterbegin');
   }
+
+  #createListContainer() {
+    if (!this.#listContainer) {
+      this.#listContainer = document.createElement('ul');
+      this.#listContainer.classList.add('trip-events__list');
+      this.#boardContainer.append(this.#listContainer);
+    }
+  }
+
+  #onNewEventButtonClick = () => {
+    this.#newPointClickHandler();
+  };
 }

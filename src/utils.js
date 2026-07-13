@@ -1,5 +1,8 @@
 import { PRICE } from './const.js';
 
+const HOURS_IN_DAY = 24;
+const MINUTES_IN_HOUR = 60;
+
 function getRandomNumber(min = PRICE.min, max = PRICE.max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -29,20 +32,22 @@ function updateItem(items, update) {
 function getDuration(start, end) {
   const totalMinutes = end.diff(start, 'minute');
   const formatTwoDigits = (number) => String(number).padStart(2, '0');
+
   let duration = '';
 
-  if (totalMinutes < 60) {
+  if (totalMinutes < MINUTES_IN_HOUR) {
     duration = `${totalMinutes}M`;
-  } else if (totalMinutes < 24 * 60) {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
+  } else if (totalMinutes < HOURS_IN_DAY * MINUTES_IN_HOUR) {
+    const hours = Math.floor(totalMinutes / HOURS_IN_DAY);
+    const minutes = totalMinutes % HOURS_IN_DAY;
     duration = `${formatTwoDigits(hours)}H ${formatTwoDigits(minutes)}M`;
   } else {
-    const days = Math.floor(totalMinutes / (24 * 60));
-    const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
-    const minutes = totalMinutes % 60;
+    const days = Math.floor(totalMinutes / (HOURS_IN_DAY * MINUTES_IN_HOUR));
+    const hours = Math.floor((totalMinutes % (HOURS_IN_DAY * MINUTES_IN_HOUR)) / HOURS_IN_DAY);
+    const minutes = totalMinutes % HOURS_IN_DAY;
     duration = `${formatTwoDigits(days)}D ${formatTwoDigits(hours)}H ${formatTwoDigits(minutes)}M`;
   }
+
   return duration;
 }
 
