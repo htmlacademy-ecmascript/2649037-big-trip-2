@@ -7,7 +7,6 @@ function createNoTaskTemplate() {
     </p>`
   );
 }
-
 export default class LoadingView extends AbstractView {
   get template() {
     return createNoTaskTemplate();

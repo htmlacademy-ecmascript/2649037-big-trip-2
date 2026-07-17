@@ -81,10 +81,8 @@ export default class FilterView extends AbstractView {
     everythingInput.checked = true;
   }
 
-
   updateDisabled(filtersAvailability) {
     this.#filtersAvailability = filtersAvailability;
-
     this.element.querySelector('#filter-everything').disabled = !filtersAvailability.everything;
     this.element.querySelector('#filter-future').disabled = !filtersAvailability.future;
     this.element.querySelector('#filter-present').disabled = !filtersAvailability.present;

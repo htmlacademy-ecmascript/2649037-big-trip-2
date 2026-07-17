@@ -207,21 +207,17 @@ export default class NewPointFormView extends AbstractStatefulView {
   #destinations = null;
   #handleSubmit = null;
   #handleCancel = null;
-
   #startDatepicker = null;
   #endDatepicker = null;
 
   constructor({ offers, destinations, onSubmit, onCancel }) {
     super();
-
     this.#offers = offers;
     this.#destinations = destinations;
     this.#handleSubmit = onSubmit;
     this.#handleCancel = onCancel;
-
     this._setState(POINT_EMPTY);
   }
-
 
   get template() {
     return createNewPointFormTemplate(
@@ -243,7 +239,6 @@ export default class NewPointFormView extends AbstractStatefulView {
       </button>
     `;
   }
-
 
   _restoreHandlers() {
     this.#restoreTypeHandlers();
@@ -357,7 +352,6 @@ export default class NewPointFormView extends AbstractStatefulView {
     return new Date(date.getTime() + DELAY_TIME);
   }
 
-
   _validateForm() {
     const saveButton = this.element.querySelector('.event__save-btn');
 
@@ -461,7 +455,6 @@ export default class NewPointFormView extends AbstractStatefulView {
       (date) => this._setState({ dateTo: date })
     );
   }
-
 
   static parsePointToState(point) {
     return {

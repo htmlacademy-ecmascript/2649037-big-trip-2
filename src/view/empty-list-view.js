@@ -29,7 +29,6 @@ function createEmptyListTemplate(filter) {
     <p class="trip-events__msg">${message}</p>
   `;
 }
-
 export default class EmptyListView extends AbstractView {
   #filter = '';
 

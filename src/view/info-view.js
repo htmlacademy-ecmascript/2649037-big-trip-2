@@ -17,7 +17,6 @@ function createInfoTemplate({ routeString, datesString, totalCost }) {
     </section>`
   );
 }
-
 export default class InfoView extends AbstractView {
   #tripInfo = null;
 
@@ -30,7 +29,6 @@ export default class InfoView extends AbstractView {
     const routeString = this.#createRouteString();
     const datesString = this.#createDatesString();
     const totalCost = this.#tripInfo.totalCost;
-
     return createInfoTemplate({ routeString, datesString, totalCost });
   }
 
