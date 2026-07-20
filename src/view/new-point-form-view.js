@@ -243,7 +243,31 @@ export default class NewPointFormView extends AbstractStatefulView {
     `;
   }
 
-  _restoreHandlers() {
+  setSaving() {
+    this.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setDeleting() {
+    this.updateElement({
+      isDisabled: true,
+      isDeleting: true,
+    });
+  }
+
+  setAborting() {
+    this.shake(() => {
+      this.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    });
+  }
+
+  restoreHandlers() {
     this.#restoreTypeHandlers();
     this.#restoreDestinationHandlers();
     this.#restorePriceHandlers();
@@ -252,6 +276,10 @@ export default class NewPointFormView extends AbstractStatefulView {
     this.#restoreCancelHandlers();
     this.#initDatepickersHandlers();
     this._validateForm();
+  }
+
+  _restoreHandlers() {
+    this.restoreHandlers();
   }
 
   removeElement() {

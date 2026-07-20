@@ -69,7 +69,7 @@ export default class FilterView extends AbstractView {
     this.#handleFilterChange = onFilterChange;
     this.#filtersAvailability = filtersAvailability;
 
-    this.element.addEventListener('change', this.#onFilterChangeHandler);
+    this.element.addEventListener('change', this.#onFilterChange);
   }
 
   get template() {
@@ -89,7 +89,7 @@ export default class FilterView extends AbstractView {
     this.element.querySelector('#filter-past').disabled = !filtersAvailability.past;
   }
 
-  #onFilterChangeHandler = (evt) => {
+  #onFilterChange = (evt) => {
     if (evt.target.name === 'trip-filter') {
       this.#handleFilterChange(evt.target.value);
     }

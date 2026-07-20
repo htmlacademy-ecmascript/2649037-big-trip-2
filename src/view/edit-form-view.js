@@ -36,9 +36,9 @@ export default class EditFormView extends NewPointFormView {
   }
 
 
-  _restoreHandlers() {
+  restoreHandlers() {
     // сначала общие обработчики
-    super._restoreHandlers();
+    super.restoreHandlers();
 
     // DELETE
     const deleteButton = this.element.querySelector('.event__reset-btn');
@@ -48,11 +48,6 @@ export default class EditFormView extends NewPointFormView {
     const rollupButton = this.element.querySelector('.event__rollup-btn');
     rollupButton.addEventListener('click', this.#onRollupButtonClick);
   }
-
-  // updateElement(update) {
-  //   super.updateElement(update);
-  //   this._restoreHandlers();
-  // }
 
   #onDeleteButtonClick = (evt) => {
     evt.preventDefault();
