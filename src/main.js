@@ -1,5 +1,5 @@
 import BoardPresenter from './presenter/board-presenter.js';
-import WayPointsModel from './model/points-model.js';
+import WayPointsModel from './model/way-points-model.js';
 import PointApiService from './point-api-service.js';
 import InfoPresenter from './presenter/info-presenter.js';
 
